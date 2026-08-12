@@ -1,0 +1,10 @@
+#pragma once
+
+extern const char* SVS_${upn}_VERSION;
+extern const char* SVS_${upn}_VERSION_VC;
+extern const int   SVS_${upn}_VERSION_MAJOR;
+extern const int   SVS_${upn}_VERSION_MINOR;
+extern const int   SVS_${upn}_VERSION_SUB;
+extern const char* SVS_${upn}_VERSION_BRANCH;
+extern const char* SVS_${upn}_VERSION_REVISION;
+

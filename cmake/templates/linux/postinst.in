@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Move License to the new location
+if [ -f /opt/Sentient/SentientAPIs/bin/SVSLicense.txt ] && [ ! -f /opt/Sentient/Licenses/SVSLicense.txt ]
+then
+	echo "Moving license file to the new location"
+	mkdir -p /opt/Sentient/Licenses/
+	mv /opt/Sentient/SentientAPIs/bin/SVSLicense.txt /opt/Sentient/Licenses/SVSLicense.txt
+fi
+
+${POSTINST_CONTENT}
+

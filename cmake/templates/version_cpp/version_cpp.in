@@ -1,0 +1,10 @@
+#include "${PROJECT_NAME}_version.h"
+
+const char* SVS_${upn}_VERSION          = "${major}.${minor}.${sub}";
+const char* SVS_${upn}_VERSION_VC       = "${major}.${minor}.${sub} (${rev} ${branch})";
+const int   SVS_${upn}_VERSION_MAJOR    = ${major};
+const int   SVS_${upn}_VERSION_MINOR    = ${minor};
+const int   SVS_${upn}_VERSION_SUB      = ${sub};
+const char* SVS_${upn}_VERSION_BRANCH   = "${branch}";
+const char* SVS_${upn}_VERSION_REVISION = "${rev}";
+
