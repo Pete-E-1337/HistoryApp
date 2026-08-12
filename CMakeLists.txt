@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(WavebladeApp)
+project(HistoryApp)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/)
 include(svs_helpers)
@@ -61,7 +61,7 @@ svs_src("Source Files\\"
 		Source/AutonomousController
 		Source/Settings
 		Source/WavebladeDriver
-		Source/WavebladeApp
+		Source/HistoryApp
 	)
 	
 svs_src("Source Files\\Gui\\"
@@ -73,7 +73,7 @@ svs_src("Source Files\\Gui\\"
 	)
 	
 svs_src("Source Files\\Gui\\GeneratedFiles\\"
-		Source/Gui/GeneratedFiles/Waveblade
+		Source/Gui/GeneratedFiles/History
 	)
 
 #svs_src("Source Files\\MathPlot\\"
@@ -114,7 +114,7 @@ svs_lib_use(
 if (WIN32)
 	svs_create_win_versioninfo(
 		versionInfoFiles
-		NAME "Waveblade"
+		NAME "History"
 		ICON "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icon.ico"
 	)
 
@@ -144,7 +144,7 @@ svs_import(DYNAMIC OpenCV ${SVS_OPENCV_VERSION} "opencv_world${SVS_CV_POSTFIX}")
 #include_directories(../VideoProcessorSettings)
 
 # Target ----------------------------------------------------------------------
-svs_executable(Waveblade WIN32)
+svs_executable(History WIN32)
 	
 # Assets ----------------------------------------------------------------------
 svs_add_asset("Resources/Icon.ico" "." RUNTIME)

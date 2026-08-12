@@ -5,10 +5,10 @@
 // PLEASE DO "NOT" EDIT THIS FILE!
 ///////////////////////////////////////////////////////////////////////////
 
-#include "Waveblade.h"
+#include "History.h"
 
 ///////////////////////////////////////////////////////////////////////////
-using namespace Waveblade;
+using namespace History;
 
 MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
