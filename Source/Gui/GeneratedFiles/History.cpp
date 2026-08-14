@@ -17,118 +17,77 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	wxFlexGridSizer* fgSizer1;
 	fgSizer1 = new wxFlexGridSizer( 0, 1, 0, 0 );
 	fgSizer1->AddGrowableCol( 0 );
-	fgSizer1->AddGrowableRow( 0 );
+	fgSizer1->AddGrowableRow( 1 );
 	fgSizer1->SetFlexibleDirection( wxBOTH );
 	fgSizer1->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
 	m_mainPanel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxFlexGridSizer* fgSizer2;
 	fgSizer2 = new wxFlexGridSizer( 0, 1, 0, 0 );
-	fgSizer2->AddGrowableCol( 0 );
 	fgSizer2->SetFlexibleDirection( wxBOTH );
 	fgSizer2->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
 	m_panel2 = new wxPanel( m_mainPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxFlexGridSizer* fgSizer3;
 	fgSizer3 = new wxFlexGridSizer( 0, 6, 0, 0 );
-	fgSizer3->AddGrowableCol( 1 );
-	fgSizer3->AddGrowableCol( 3 );
-	fgSizer3->AddGrowableCol( 5 );
 	fgSizer3->SetFlexibleDirection( wxBOTH );
 	fgSizer3->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
-	m_staticText1 = new wxStaticText( m_panel2, wxID_ANY, wxT("Yaw"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText1 = new wxStaticText( m_panel2, wxID_ANY, wxT("Category"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText1->Wrap( -1 );
 	fgSizer3->Add( m_staticText1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 	
-	m_textCtrl1 = new wxTextCtrl( m_panel2, wxID_ANY, wxT("0.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_READONLY|wxSUNKEN_BORDER );
-	m_textCtrl1->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
-	
-	fgSizer3->Add( m_textCtrl1, 0, wxALIGN_CENTER_VERTICAL, 5 );
-	
-	m_staticText11 = new wxStaticText( m_panel2, wxID_ANY, wxT("Pitch"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText11->Wrap( -1 );
-	fgSizer3->Add( m_staticText11, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-	
-	m_textCtrl11 = new wxTextCtrl( m_panel2, wxID_ANY, wxT("0.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_READONLY|wxSUNKEN_BORDER );
-	m_textCtrl11->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
-	
-	fgSizer3->Add( m_textCtrl11, 0, wxALIGN_CENTER_VERTICAL, 5 );
-	
-	m_staticText12 = new wxStaticText( m_panel2, wxID_ANY, wxT("Roll"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText12->Wrap( -1 );
-	fgSizer3->Add( m_staticText12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-	
-	m_textCtrl12 = new wxTextCtrl( m_panel2, wxID_ANY, wxT("0.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_READONLY|wxSUNKEN_BORDER );
-	m_textCtrl12->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
-	
-	fgSizer3->Add( m_textCtrl12, 0, wxALIGN_CENTER_VERTICAL, 5 );
-	
-	m_staticText13 = new wxStaticText( m_panel2, wxID_ANY, wxT("Position"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText13->Wrap( -1 );
-	fgSizer3->Add( m_staticText13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-	
-	m_textCtrl13 = new wxTextCtrl( m_panel2, wxID_ANY, wxT("0.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_READONLY|wxSUNKEN_BORDER );
-	m_textCtrl13->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
-	
-	fgSizer3->Add( m_textCtrl13, 0, wxALIGN_CENTER_VERTICAL, 5 );
-	
-	m_staticText14 = new wxStaticText( m_panel2, wxID_ANY, wxT("Vessel Depth"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText14->Wrap( -1 );
-	fgSizer3->Add( m_staticText14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-	
-	m_textCtrl14 = new wxTextCtrl( m_panel2, wxID_ANY, wxT("0.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_READONLY|wxSUNKEN_BORDER );
-	m_textCtrl14->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
-	
-	fgSizer3->Add( m_textCtrl14, 0, wxALIGN_CENTER_VERTICAL, 5 );
-	
-	m_staticText15 = new wxStaticText( m_panel2, wxID_ANY, wxT("Water Depth"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText15->Wrap( -1 );
-	fgSizer3->Add( m_staticText15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-	
-	m_textCtrl15 = new wxTextCtrl( m_panel2, wxID_ANY, wxT("0.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_READONLY|wxSUNKEN_BORDER );
-	m_textCtrl15->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
-	
-	fgSizer3->Add( m_textCtrl15, 0, wxALIGN_CENTER_VERTICAL, 5 );
-	
-	m_staticText16 = new wxStaticText( m_panel2, wxID_ANY, wxT("Wave Height"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText16->Wrap( -1 );
-	fgSizer3->Add( m_staticText16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-	
-	m_textCtrl16 = new wxTextCtrl( m_panel2, wxID_ANY, wxT("0.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_READONLY|wxSUNKEN_BORDER );
-	m_textCtrl16->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
-	
-	fgSizer3->Add( m_textCtrl16, 0, wxALIGN_CENTER_VERTICAL, 5 );
-	
-	m_staticText17 = new wxStaticText( m_panel2, wxID_ANY, wxT("Fuel"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText17->Wrap( -1 );
-	fgSizer3->Add( m_staticText17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-	
-	m_textCtrl17 = new wxTextCtrl( m_panel2, wxID_ANY, wxT("0.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_READONLY|wxSUNKEN_BORDER );
-	m_textCtrl17->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
-	
-	fgSizer3->Add( m_textCtrl17, 0, wxALIGN_CENTER_VERTICAL, 5 );
-	
-	m_staticText18 = new wxStaticText( m_panel2, wxID_ANY, wxT("Battery"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText18->Wrap( -1 );
-	fgSizer3->Add( m_staticText18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-	
-	m_textCtrl18 = new wxTextCtrl( m_panel2, wxID_ANY, wxT("0.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_READONLY|wxSUNKEN_BORDER );
-	m_textCtrl18->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_MENU ) );
-	
-	fgSizer3->Add( m_textCtrl18, 0, wxALIGN_CENTER_VERTICAL, 5 );
+	wxString m_categoryChoiceChoices[] = { wxT("Ages/Eras"), wxT("Battles"), wxT("Ages") };
+	int m_categoryChoiceNChoices = sizeof( m_categoryChoiceChoices ) / sizeof( wxString );
+	m_categoryChoice = new wxChoice( m_panel2, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_categoryChoiceNChoices, m_categoryChoiceChoices, 0 );
+	m_categoryChoice->SetSelection( 0 );
+	fgSizer3->Add( m_categoryChoice, 0, wxALL, 5 );
 	
 	
 	m_panel2->SetSizer( fgSizer3 );
 	m_panel2->Layout();
 	fgSizer3->Fit( m_panel2 );
-	fgSizer2->Add( m_panel2, 1, wxEXPAND | wxALL, 5 );
+	fgSizer2->Add( m_panel2, 1, wxALL, 5 );
 	
 	
 	m_mainPanel->SetSizer( fgSizer2 );
 	m_mainPanel->Layout();
 	fgSizer2->Fit( m_mainPanel );
-	fgSizer1->Add( m_mainPanel, 1, wxEXPAND | wxALL, 0 );
+	fgSizer1->Add( m_mainPanel, 1, wxALL|wxEXPAND, 0 );
+	
+	m_timelinePanel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
+	m_timelinePanel->SetBackgroundColour( wxColour( 255, 255, 255 ) );
+	
+	wxFlexGridSizer* fgSizer5;
+	fgSizer5 = new wxFlexGridSizer( 0, 1, 0, 0 );
+	fgSizer5->AddGrowableCol( 0 );
+	fgSizer5->AddGrowableRow( 0 );
+	fgSizer5->SetFlexibleDirection( wxBOTH );
+	fgSizer5->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	
+	m_timelinePanel->SetSizer( fgSizer5 );
+	m_timelinePanel->Layout();
+	fgSizer5->Fit( m_timelinePanel );
+	fgSizer1->Add( m_timelinePanel, 1, wxEXPAND | wxALL, 5 );
+	
+	m_panel7 = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxFlexGridSizer* fgSizer6;
+	fgSizer6 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer6->SetFlexibleDirection( wxBOTH );
+	fgSizer6->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_slider1 = new wxSlider( m_panel7, wxID_ANY, 50, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL );
+	fgSizer6->Add( m_slider1, 0, wxALL, 5 );
+	
+	m_scrollBar1 = new wxScrollBar( m_panel7, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL );
+	fgSizer6->Add( m_scrollBar1, 0, wxALL, 5 );
+	
+	
+	m_panel7->SetSizer( fgSizer6 );
+	m_panel7->Layout();
+	fgSizer6->Fit( m_panel7 );
+	fgSizer1->Add( m_panel7, 1, wxEXPAND | wxALL, 5 );
 	
 	m_bottomPanel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxFlexGridSizer* fgSizer4;
@@ -157,7 +116,8 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	
 	this->SetSizer( fgSizer1 );
 	this->Layout();
-	m_guiTimer.SetOwner( this, wxID_ANY );
+	m_guiTimer.SetOwner( this, MAIN_GUI_TIMER );
+	m_renderTickTimer.SetOwner( this, MAIN_RENDER_TIMER );
 	m_menuBar = new wxMenuBar( 0 );
 	this->SetMenuBar( m_menuBar );
 	
@@ -166,13 +126,15 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	
 	// Connect Events
 	m_exitButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnExitButtonClick ), NULL, this );
-	this->Connect( wxID_ANY, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnGuiTimer ) );
+	this->Connect( MAIN_GUI_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnGuiTimer ) );
+	this->Connect( MAIN_RENDER_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnRenderTickTimer ) );
 }
 
 MainForm::~MainForm()
 {
 	// Disconnect Events
 	m_exitButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnExitButtonClick ), NULL, this );
-	this->Disconnect( wxID_ANY, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnGuiTimer ) );
+	this->Disconnect( MAIN_GUI_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnGuiTimer ) );
+	this->Disconnect( MAIN_RENDER_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnRenderTickTimer ) );
 	
 }

@@ -26,7 +26,7 @@ svs_version(1 0 0 0)
 set(SVS_BOOST_VERSION "1.63.0" CACHE STRING "")
 set(SVS_OPENCV_VERSION "3.2.0" CACHE STRING "")
 set(SVS_CV_POSTFIX "320" CACHE STRING "")
-set(SVS_INSTALL_DIR "Sentient Vision/WavebladeApp" CACHE STRING "")
+set(SVS_INSTALL_DIR "Sentient/HistoryApp" CACHE STRING "")
 
 # Configuration --------------------------------------------------------------------
 svs_set_configurations(
@@ -58,9 +58,9 @@ svs_add_flag(WIN32 COMPILE_DEBUG "-D_DEBUG")
 
 # Sources ---------------------------------------------------------------------
 svs_src("Source Files\\"
-		Source/AutonomousController
+#		Source/AutonomousController
 		Source/Settings
-		Source/WavebladeDriver
+#		Source/WavebladeDriver
 		Source/HistoryApp
 	)
 	
@@ -69,6 +69,7 @@ svs_src("Source Files\\Gui\\"
 #		Source/Gui/CalibrationFilesDialog
 #        Source/Gui/GuiUtils
 		Source/Gui/MainForm
+		Source/Gui/TimelineGLCanvas
 #		Source/Gui/SerialSettingsDialog
 	)
 	
@@ -98,6 +99,8 @@ svs_auto_lib_src(
 		Logger/Log
 		Math/MiscMath
 		Memory/CircularBuffer
+		Spatial/Angle
+		Spatial/Vector3D
 		Time/SVSdatetime
 		Time/TimeHelper
 		Std.h

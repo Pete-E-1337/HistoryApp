@@ -1,12 +1,13 @@
 #ifndef MAINFORM_H
 #define MAINFORM_H
 
-#include "GeneratedFiles/Waveblade.h"
+#include "GeneratedFiles/History.h"
 #include <SVSLibrary/Std.h>
 #include <SVSLibrary/Execution/BoostIoService.h>
 #include <SVSLibrary/Execution/Mutex.h>
+#include "TimelineGLCanvas.h"
 
-class MainForm : public Waveblade::MainForm
+class MainForm : public History::MainForm
 {
 public:
    MainForm(wxWindow* parent);
@@ -14,6 +15,7 @@ public:
 
 	virtual void OnExitButtonClick(wxCommandEvent& event) override;
 	virtual void OnGuiTimer(wxTimerEvent& event) override;
+	virtual void OnRenderTickTimer(wxTimerEvent& event) override;
 
 private:
    void Initialise();
@@ -31,6 +33,7 @@ private:
 //	AboutDialog*								m_aboutDialog									= nullptr;
 // SVS::Mutex									m_graphVectorsLock;
 //	FILE*											m_report = nullptr;
+	TimelineGLCanvas*				m_timelineCanvas		= nullptr;
 };
 
 #endif // MAINFORM_H

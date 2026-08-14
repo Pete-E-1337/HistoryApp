@@ -28,7 +28,7 @@ SVS_WARNING_DISABLE(4100) // Unreferenced formal parameter in boost
 const char* l_settingsFilename = "settings.txt";
 
 MainForm::MainForm(wxWindow* parent) :
-	Waveblade::MainForm(parent),
+	History::MainForm(parent),
    m_ioService(std::max((int32_t)std::thread::hardware_concurrency(), 2), SVS::StartupType::Automatic)
 {
 //	SetIcon(wxICON(ISENTRYDISKUSAGECONFIGAPP_LOGO));
@@ -65,11 +65,22 @@ MainForm::~MainForm()
 //		fclose(m_report);
 //		m_report = nullptr;
 //	}
+
+	if (m_timelineCanvas != nullptr)
+	{
+//		delete m_timelineCanvas;	// newed components are deleted by the wxWidgets system
+		m_timelineCanvas = nullptr;
+	}
+
 }
 
 void MainForm::Initialise()
 {
 	LoadSettings();
+
+	m_timelineCanvas = new TimelineGLCanvas(m_timelinePanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+	wxSizer* sizer = m_timelinePanel->GetSizer();
+	sizer->Add(m_timelineCanvas, 1, wxEXPAND);
 }
 
 void MainForm::LoadSettings()
@@ -96,4 +107,18 @@ void MainForm::OnGuiTimer(wxTimerEvent& event)
 {
 	event.Skip();
 }
+
+void MainForm::OnRenderTickTimer(wxTimerEvent& event)
+{
+//	int deltaTimeMSecs = event.GetInterval();
+		
+	if (m_timelineCanvas != nullptr)
+	{
+		m_timelineCanvas->Refresh();	// Mark as requiring a redraw
+//		m_timelineCanvas->Update();
+	}
+
+	event.Skip();
+}
+
 

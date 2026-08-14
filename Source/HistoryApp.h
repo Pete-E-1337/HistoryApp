@@ -1,5 +1,5 @@
-#ifndef WAVEBLADEAPP_H
-#define WAVEBLADEAPP_H
+#ifndef HISTORYAPP_H
+#define HISTORYAPP_H
 
 //#pragma once
 
@@ -14,20 +14,20 @@
 
 #include <memory>
 #include <wx/app.h>
-#include "WavebladeDriver.h"
-#include "AutonomousController.h"
+//#include "WavebladeDriver.h"
+//#include "AutonomousController.h"
 #include "Settings.h"
 
-#define WAVEBLADE_APP_VERSION 1.0.0.0
+#define HISTORY_APP_VERSION 1.0.0.0
 
 class MainForm;
 class wxSingleInstanceChecker;
 
-class WavebladeApp : public wxApp
+class HistoryApp : public wxApp
 {
 public:
-   WavebladeApp();
-   ~WavebladeApp();
+   HistoryApp();
+   ~HistoryApp();
 
    bool OnInit() override;
    int OnExit() override;
@@ -46,10 +46,10 @@ private:
    static std::string s_exeName;
 
    Settings                m_settings;
-   WavebladeDriver*        m_wavebladeDriver       = nullptr;
-   AutonomousController*   m_autonomousController  = nullptr;
+//   WavebladeDriver*        m_wavebladeDriver       = nullptr;
+//   AutonomousController*   m_autonomousController  = nullptr;
 };
 
-DECLARE_APP(WavebladeApp)
+DECLARE_APP(HistoryApp)
 
-#endif // WAVEBLADEAPP_H
+#endif // HISTORYAPP_H
