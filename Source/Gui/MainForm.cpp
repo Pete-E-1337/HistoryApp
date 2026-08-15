@@ -81,6 +81,9 @@ void MainForm::Initialise()
 	m_timelineCanvas = new TimelineGLCanvas(m_timelinePanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	wxSizer* sizer = m_timelinePanel->GetSizer();
 	sizer->Add(m_timelineCanvas, 1, wxEXPAND);
+
+	m_guiTimer.Start(1000);
+	m_renderTickTimer.Start(40);
 }
 
 void MainForm::LoadSettings()

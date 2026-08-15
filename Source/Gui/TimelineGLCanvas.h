@@ -3,6 +3,7 @@
 
 #include "wx/dcclient.h"
 #include "wx/glcanvas.h"
+#include <SVSLibrary/GUI/OpenGLHelper.h>
 #include <SVSLibrary/Math/Matrix4.h>
 #include <SVSLibrary/Math/AlphaFilter.h>
 #include <SVSLibrary/Spatial/Vector3D.h>
@@ -138,6 +139,8 @@ private:
 
 	//wxJoystick*											m_joyStick					= nullptr;
 	//JoystickData										m_joystickData;
+	OpenGLFont											m_openglFont;
+
 
 	wxDECLARE_NO_COPY_CLASS(TimelineGLCanvas);
 	wxDECLARE_EVENT_TABLE();

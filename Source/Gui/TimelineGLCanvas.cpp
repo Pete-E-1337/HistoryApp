@@ -7,8 +7,9 @@
 //#if wxUSE_ZLIB
 //#include "wx/zstream.h"
 //#endif
-#include <SVSLibrary/Spatial/Geometrics.h>
+#include <SVSLibrary/GUI/OpenGLHelper.h>
 #include <SVSLibrary/Math/MiscMath.h>
+#include <SVSLibrary/Spatial/Geometrics.h>
 //#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
@@ -22,7 +23,7 @@ SVS_WARNING_DISABLE(4100) // Unreferenced formal parameter
 
 //#define USE_REAL_WORLD_POSITION	// Enabling this forces the use of very large values and results in flickering caused by inaccuracies in the camera matrix calculations
 //#define RENDER_PENGUIN
-#define DRAW_AXIS
+#define DRAW_DEBUG_AXIS
 //#define OUTPUT_OBJ_MODEL_INFO
 
 SVS_WARNING_DISABLE(4189) // local variable is initialized but not referenced
@@ -42,6 +43,7 @@ EVT_KEY_UP(TimelineGLCanvas::OnKeyUp)
 wxEND_EVENT_TABLE()
 
 //const double l_speedPerceptionScale = 2.0;
+const float l_debugAxisLength = 1.0f;
 
 //const SVS::Vector3Dd l_worldTranslation = {-144.924786 * SVS::Spatial::DEGREESLAT2METRES, 0.0, 37.834297 * SVS::Spatial::DEGREESLAT2METRES };
 const SVS::Vector3Dd l_worldTranslation = { 0.0, 0.0, 0.0 };
@@ -99,10 +101,14 @@ TimelineGLCanvas::TimelineGLCanvas(wxWindow *parent,
 	//m_cameraMatrix.GetYawPitchRoll(yaw, pitch, roll);
 	//BREAK_HERE();
 
+	// Opengl is a right handed coordinate system so x is to the left, y is up and z is positive looking INTO the screen.
+	// To set the x axis positive to the right, we will rotate the camera 180 degrees around the Y axis and look backward
+	// at our scene. Doing so will mean that the z axis is now positive looking OUT of the screen
+
 	// Set view
 	{
-//		m_cameraMatrix.SetRotation(SVS::Angle::Degrees(0.0), SVS::Angle::Degrees(-90.0), SVS::Angle::Degrees(0.0));
-		m_cameraMatrix.SetPosition(0.0, 0.0, -4.0);
+		m_cameraMatrix.SetRotation(SVS::Angle::Degrees(0.0), SVS::Angle::Degrees(180.0), SVS::Angle::Degrees(0.0));
+		m_cameraMatrix.SetPosition(0.0, 0.0, 3.0);
 	}
 
 	//// Apply world translation to camera
@@ -141,39 +147,73 @@ TimelineGLCanvas::~TimelineGLCanvas()
 
 void TimelineGLCanvas::InitGL()
 {
-	static const GLfloat light0_pos[4] = { -50.0f, 50.0f, 0.0f, 0.0f };
+	//// Waveblades model render setup
+	//{
+	//	static const GLfloat light0_pos[4] = { -50.0f, 50.0f, 0.0f, 0.0f };
 
-	// white light
-	static const GLfloat light0_color[4] = { 0.6f, 0.6f, 0.6f, 1.0f };
+	//	// white light
+	//	static const GLfloat light0_color[4] = { 0.6f, 0.6f, 0.6f, 1.0f };
 
-	static const GLfloat light1_pos[4] = { 50.0f, 50.0f, 0.0f, 0.0f };
+	//	static const GLfloat light1_pos[4] = { 50.0f, 50.0f, 0.0f, 0.0f };
 
-	// cold blue light
-	static const GLfloat light1_color[4] = { 0.4f, 0.4f, 1.0f, 1.0f };
+	//	// cold blue light
+	//	static const GLfloat light1_color[4] = { 0.4f, 0.4f, 1.0f, 1.0f };
 
-	/* remove back faces */
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
-	glClearDepth(1.0f);
-	glDepthFunc(GL_LEQUAL);
+	//	/* remove back faces */
+	//	glEnable(GL_CULL_FACE);
+	//	glEnable(GL_DEPTH_TEST);
+	//	glClearDepth(1.0f);
+	//	glDepthFunc(GL_LEQUAL);
 
-	/* speedups */
-	glEnable(GL_DITHER);
-	glShadeModel(GL_SMOOTH);
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-	glHint(GL_POLYGON_SMOOTH_HINT, GL_FASTEST);
+	//	/* speedups */
+	//	glEnable(GL_DITHER);
+	//	glShadeModel(GL_SMOOTH);
+	//	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+	//	glHint(GL_POLYGON_SMOOTH_HINT, GL_FASTEST);
 
-	/* light */
-	glLightfv(GL_LIGHT0, GL_POSITION, light0_pos);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_color);
-	glLightfv(GL_LIGHT1, GL_POSITION, light1_pos);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_color);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
-	glEnable(GL_LIGHTING);
+	//	/* light */
+	//	glLightfv(GL_LIGHT0, GL_POSITION, light0_pos);
+	//	glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_color);
+	//	glLightfv(GL_LIGHT1, GL_POSITION, light1_pos);
+	//	glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_color);
+	//	glEnable(GL_LIGHT0);
+	//	glEnable(GL_LIGHT1);
+	//	glEnable(GL_LIGHTING);
 
-	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-	glEnable(GL_COLOR_MATERIAL);
+	//	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	//	glEnable(GL_COLOR_MATERIAL);
+	//}
+
+	// getting rectangles rendering
+	{
+		glEnable(GL_LINE_STIPPLE);
+		// DO NOT ENABLE THESE
+	//	glEnable(GL_BLEND);
+	//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//	glEnable(GL_DEPTH_TEST);
+
+		glDisable(GL_LIGHTING);
+		glClearColor(0, 0, 0, 1);
+
+		//ok = m_openglTargetFont.Init("FreeSans.ttf", 10);
+		//ok = m_openglFpsFont.Init("FreeSans.ttf", 10);
+		//BREAK_UNLESS(ok);
+	}
+
+	bool ok = m_openglFont.Init("FreeSans.ttf", 10);
+
+	//bool ok = true;
+
+	//ok = ok && m_opengl_font[0].Init("FreeSans.ttf", 8);
+	//ok = ok && m_opengl_font[1].Init("FreeSans.ttf", 10);
+	//ok = ok && m_opengl_font[2].Init("FreeSans.ttf", 11);
+	//ok = ok && m_opengl_font[3].Init("FreeSans.ttf", 16);
+
+	if (ok == false)
+	{
+//		wxMessageDialog(this, "Could not load ttf font", "Error", wxOK | wxICON_ERROR);
+		assert(false);
+	}
 }
 
 void TimelineGLCanvas::ResetProjectionMode()
@@ -199,10 +239,18 @@ void TimelineGLCanvas::ResetProjectionMode()
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(60.0f, (GLfloat)w / h, 1.0, 1000.0);
+	gluPerspective(60.0f, (GLfloat)w / h, 0.5, 1000.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
+	//// Call this once during setup to map coordinates to screen pixels
+	//{
+	//	glMatrixMode(GL_PROJECTION);
+	//	glLoadIdentity();
+	//	gluOrtho2D(0.0, (double)w, 0.0, (double)h); // (Left, Right, Bottom, Top)
+	//	glMatrixMode(GL_MODELVIEW);
+	//}
 }
 
 //void TimelineGLCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
@@ -283,9 +331,41 @@ void TimelineGLCanvas::Render()
 	// Do all the rendering
 //	RenderVessel();
 //	RenderSeaGrid();
-#ifdef DRAW_AXIS
+#ifdef DRAW_DEBUG_AXIS
 	DEBUG_DrawAxis();
 #endif
+
+	//// draw a rectangle using a quad
+	//{
+	//	glColor3f(1.0f, 0.0f, 0.0f); // Red color
+
+	//	// Draw a quad (rectangle)
+	//	float offset = 2.0f;
+
+	//	glBegin(GL_QUADS);
+	//		 glVertex2f(-0.5f + offset, -0.5f); // Bottom-left
+	//		 glVertex2f( 0.5f + offset, -0.5f); // Bottom-right
+	//		 glVertex2f( 0.5f + offset,  0.5f); // Top-right
+	//		 glVertex2f(-0.5f + offset,  0.5f); // Top-left
+	//	glEnd();
+	//}
+
+	//{
+	//	glColor4ub(255, 255, 255, 255);
+	//	glRectf(-0.5f, -0.5f, 0.5f, 0.5f);
+	//}
+
+	{
+		OpenGLHelper::DrawSolidRectangle(0.5f, 0.5f, 1.5f, 1.5f, 255, 200, 200);
+	}
+
+	{
+		float fontScale = 1.0f;
+
+		glColor3ub(255, 255, 255);		// Red
+		OpenGLHelper::DrawText(0, 0, 0, m_openglFont, 0.01f, "This is some text");
+	//	OpenGLHelper::DrawText(x-4, y, 0, m_openglMapFont, 1.0f, "N");
+	}
 
 	// Flush
 //	glFlush();
@@ -296,34 +376,34 @@ void TimelineGLCanvas::Render()
 
 void TimelineGLCanvas::DEBUG_DrawAxis()
 {
-	glDisable(GL_LIGHTING);
+//	glDisable(GL_LIGHTING);
 
-	glLineWidth(4.0);
+	glLineWidth(1.0);
 
 	// x, red
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINES);
 	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(10.0f, 0.0f, 0.0f);
+	glVertex3f(l_debugAxisLength, 0.0f, 0.0f);
 	glEnd();
 
 	// y, green
 	glColor3f(0.0f, 1.0f, 0.0f);
 	glBegin(GL_LINES);
 	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 10.0f, 0.0f);
+	glVertex3f(0.0f, l_debugAxisLength, 0.0f);
 	glEnd();
 
 	// z, blue
 	glColor3f(0.0f, 0.0f, 1.0f);
 	glBegin(GL_LINES);
 	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 0.0f, 10.0f);
+	glVertex3f(0.0f, 0.0f, l_debugAxisLength);
 	glEnd();
 
 	glColor3f(1.0f, 1.0f, 1.0f);
 
-	glEnable(GL_LIGHTING);
+//	glEnable(GL_LIGHTING);
 }
 
 //void TimelineGLCanvas::OnSize(wxSizeEvent& WXUNUSED(event))
@@ -348,12 +428,16 @@ void TimelineGLCanvas::OnKeyDown(wxKeyEvent& event)
 
 	int keyCode = event.GetKeyCode();
 
-	//switch (keyCode)
-	//{
+	switch (keyCode)
+	{
 	//	case 'A':	m_inputData.keyData.leftKeyDown = true;									break;
 	//	case 'D':	m_inputData.keyData.rightKeyDown = true;									break;
-	//	case 'W':	m_inputData.keyData.forwardKeyDown = true;								break;
-	//	case 'S':	m_inputData.keyData.backKeyDown = true;									break;
+		case 'W':
+			m_cameraMatrix.SetPositionZ(m_cameraMatrix.GetPositionZ() - 1.0f);
+			break;
+		case 'S':
+			m_cameraMatrix.SetPositionZ(m_cameraMatrix.GetPositionZ() + 1.0f);
+			break;
 	//	case 306:	m_cameraSpeedScale = 2.0;														break;	// Shift key
 	//	case 'G':	m_inputData.keyData.graphKeyDown = true;									break;
 	//	case 'I':	m_inputData.keyData.noseDownKeyDown = true;								break;
@@ -367,7 +451,7 @@ void TimelineGLCanvas::OnKeyDown(wxKeyEvent& event)
 	//	case WXK_ESCAPE:
 	//	case 'V':	m_inputData.keyData.exitKeyDown = true;									break;
 	//	default: break;
-	//}
+	}
 
 	event.Skip();
 }

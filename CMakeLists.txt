@@ -96,11 +96,15 @@ svs_auto_lib_src(
 		Execution/FileLogger
 		Execution/Mutex.h
 		Execution/MutexBoost.cpp
+		GUI/OpenGLHelper
+		GUI/OpenGLFont
+		GUI/Font
 		Logger/Log
 		Math/MiscMath
 		Memory/CircularBuffer
 		Spatial/Angle
 		Spatial/Vector3D
+		Structures/DrawingPrimitives
 		Time/SVSdatetime
 		Time/TimeHelper
 		Std.h
@@ -130,12 +134,15 @@ endif()
 # Imports ---------------------------------------------------------------------
 #svs_import(DYNAMIC boost 1.60.0 system thread chrono filesystem date_time atomic regex bimap)
 #svs_import(DYNAMIC boost 1.63.0 system thread chrono filesystem)
+#svs_import(HEADERS boost-enum 4.6)
 svs_import(HEADERS boost  ${SVS_BOOST_VERSION})
 svs_import(HEADERS rapidjson 1.1.0)
 #svs_import(HEADERS nod 0.4.1)
+svs_import(DYNAMIC freeglut 2.8.1 freeglut)
 svs_import(DYNAMIC wxWidgets 3.0.2)
 svs_import(DYNAMIC OpenCV ${SVS_OPENCV_VERSION} "opencv_world${SVS_CV_POSTFIX}")
-#svs_import(HEADERS boost-enum 4.6)
+svs_import(DYNAMIC glew 1.6.0 glew32)
+svs_import(STATIC freetype 2.4.10 freetype2410)
 
 # Add Subprojects -------------------------------------------------------------
 #svs_add_subproject(../../ISentryShared)
