@@ -43,11 +43,12 @@ EVT_KEY_UP(TimelineGLCanvas::OnKeyUp)
 wxEND_EVENT_TABLE()
 
 //const double l_speedPerceptionScale = 2.0;
-const float		l_debugAxisLength		= 1.0f;
-const double	l_nearClipPlane		= 1.0;
-const double	l_farClipPlane			= 10000.0;
-const double	l_cameraFOV				= 45.0;
-const int		l_numLines				= 10;
+const float		l_debugAxisLength								= 1.0f;
+const double	l_nearClipPlane								= 1.0;
+const double	l_farClipPlane									= 10000.0;
+const double	l_cameraFOV										= 45.0;
+const int		l_numLines										= 10;
+const double	l_horizontal_axis_height_accomodation	= 1.6;	// "lines" worth
 
 SVS::Drawing::RGB l_displayColors[] =
 {
@@ -402,7 +403,7 @@ void TimelineGLCanvas::DrawTimelineEventDataList()
 
 	float y_spacing			= 0.05 * m_cameraMatrix.GetPositionZ();
 //	const float start_y		= 0.0f;
-	const float start_y		= ((double)l_numLines / 2.0) * y_spacing;
+	const float start_y		= ((double)l_numLines / 2.0 + l_horizontal_axis_height_accomodation) * y_spacing;
 //	float font_scale			= 0.01f;
 	float font_scale			= 0.003f * m_cameraMatrix.GetPositionZ();
 	float date_font_scale	= 0.0025f * m_cameraMatrix.GetPositionZ();
@@ -505,7 +506,7 @@ void TimelineGLCanvas::DrawDrawTimelineDateScale(float font_scale, float y_spaci
 		double x = x1 - std::fmod(x1, x_spacing);
 		float y1 = y;
 		float y2 = y - line_height;
-		float y3 = ((double)l_numLines / 2.0) * y_spacing;
+		float y3 = ((double)l_numLines / 2.0 + l_horizontal_axis_height_accomodation) * y_spacing;
 		float text_y = y2 - (y_spacing / 5.0);
 		std::string date_str;
 

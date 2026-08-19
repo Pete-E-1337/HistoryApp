@@ -938,7 +938,7 @@
                 </object>
                 <object class="sizeritem" expanded="1">
                     <property name="border">5</property>
-                    <property name="flag">wxBOTTOM|wxEXPAND|wxLEFT</property>
+                    <property name="flag">wxEXPAND|wxLEFT</property>
                     <property name="proportion">1</property>
                     <object class="wxPanel" expanded="1">
                         <property name="BottomDockable">1</property>
@@ -1220,7 +1220,7 @@
                 </object>
                 <object class="sizeritem" expanded="1">
                     <property name="border">5</property>
-                    <property name="flag">wxEXPAND | wxALL</property>
+                    <property name="flag">wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT</property>
                     <property name="proportion">1</property>
                     <object class="wxPanel" expanded="1">
                         <property name="BottomDockable">1</property>
@@ -1299,7 +1299,7 @@
                         <object class="wxFlexGridSizer" expanded="1">
                             <property name="cols">0</property>
                             <property name="flexible_direction">wxBOTH</property>
-                            <property name="growablecols"></property>
+                            <property name="growablecols">0,3</property>
                             <property name="growablerows"></property>
                             <property name="hgap">0</property>
                             <property name="minimum_size"></property>
@@ -1310,7 +1310,17 @@
                             <property name="vgap">0</property>
                             <object class="sizeritem" expanded="1">
                                 <property name="border">5</property>
-                                <property name="flag">wxALIGN_CENTER_VERTICAL|wxALL</property>
+                                <property name="flag">wxEXPAND</property>
+                                <property name="proportion">1</property>
+                                <object class="spacer" expanded="1">
+                                    <property name="height">0</property>
+                                    <property name="permission">protected</property>
+                                    <property name="width">0</property>
+                                </object>
+                            </object>
+                            <object class="sizeritem" expanded="1">
+                                <property name="border">5</property>
+                                <property name="flag">wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT</property>
                                 <property name="proportion">0</property>
                                 <object class="wxStaticText" expanded="1">
                                     <property name="BottomDockable">1</property>
@@ -1393,7 +1403,7 @@
                             </object>
                             <object class="sizeritem" expanded="1">
                                 <property name="border">5</property>
-                                <property name="flag">wxALIGN_CENTER_VERTICAL|wxALL</property>
+                                <property name="flag">wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT</property>
                                 <property name="proportion">0</property>
                                 <object class="wxTextCtrl" expanded="1">
                                     <property name="BottomDockable">1</property>
@@ -1480,6 +1490,16 @@
                                     <event name="OnTextMaxLen"></event>
                                     <event name="OnTextURL"></event>
                                     <event name="OnUpdateUI"></event>
+                                </object>
+                            </object>
+                            <object class="sizeritem" expanded="1">
+                                <property name="border">5</property>
+                                <property name="flag">wxEXPAND</property>
+                                <property name="proportion">1</property>
+                                <object class="spacer" expanded="1">
+                                    <property name="height">0</property>
+                                    <property name="permission">protected</property>
+                                    <property name="width">0</property>
                                 </object>
                             </object>
                         </object>

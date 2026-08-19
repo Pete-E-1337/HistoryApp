@@ -130,28 +130,36 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_panel6->SetSizer( fgSizer61 );
 	m_panel6->Layout();
 	fgSizer61->Fit( m_panel6 );
-	fgSizer1->Add( m_panel6, 1, wxBOTTOM|wxEXPAND|wxLEFT, 5 );
+	fgSizer1->Add( m_panel6, 1, wxEXPAND|wxLEFT, 5 );
 	
 	m_panel7 = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_panel7->SetBackgroundColour( wxColour( 208, 208, 208 ) );
 	
 	wxFlexGridSizer* fgSizer6;
 	fgSizer6 = new wxFlexGridSizer( 1, 0, 0, 0 );
+	fgSizer6->AddGrowableCol( 0 );
+	fgSizer6->AddGrowableCol( 3 );
 	fgSizer6->SetFlexibleDirection( wxBOTH );
 	fgSizer6->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
+	
+	fgSizer6->Add( 0, 0, 1, wxEXPAND, 5 );
+	
 	m_staticText3 = new wxStaticText( m_panel7, wxID_ANY, wxT("Date"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText3->Wrap( -1 );
-	fgSizer6->Add( m_staticText3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	fgSizer6->Add( m_staticText3, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 	
 	m_dateTextCtrl = new wxTextCtrl( m_panel7, wxID_ANY, wxT("4540000000 BC"), wxDefaultPosition, wxSize( 90,-1 ), wxTE_CENTRE|wxTE_PROCESS_ENTER|wxSUNKEN_BORDER );
-	fgSizer6->Add( m_dateTextCtrl, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	fgSizer6->Add( m_dateTextCtrl, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+	
+	
+	fgSizer6->Add( 0, 0, 1, wxEXPAND, 5 );
 	
 	
 	m_panel7->SetSizer( fgSizer6 );
 	m_panel7->Layout();
 	fgSizer6->Fit( m_panel7 );
-	fgSizer1->Add( m_panel7, 1, wxEXPAND | wxALL, 5 );
+	fgSizer1->Add( m_panel7, 1, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
 	
 	m_bottomPanel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_bottomPanel->SetBackgroundColour( wxColour( 208, 208, 208 ) );
