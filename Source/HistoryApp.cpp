@@ -70,8 +70,39 @@ bool HistoryApp::OnInit()
 
    m_settings.Load("_settings.txt");
 
+	// Add some example event data
+	{
+		//TimelineEventData eventData;
+		//
+		//eventData.startDate		= 1939.0;
+		//eventData.endDate			= 1945.0;
+		//eventData.name				= "World War II";
+		//m_appData.eventList.push_back(eventData);
+
+		//eventData.startDate		= 0.0;
+		//eventData.endDate			= 30.0;
+		//eventData.name				= "Jesus of Nazareth ";
+		//m_appData.eventList.push_back(eventData);
+
+		AddEventTimelineEventData(0, 30.0, "Jesus of Nazareth");
+		AddEventTimelineEventData(1939.0, 1945.0, "World War II");
+		AddEventTimelineEventData(-4540000000.0, 2026.0, "Earth");
+		AddEventTimelineEventData(-2500000.0, -3300.0, "Stone Age");
+		AddEventTimelineEventData(-3300.0, -1200.0, "Bronze Age");
+		AddEventTimelineEventData(-1200.0, -500.0, "Iron Age");
+		AddEventTimelineEventData(-500.0, 500.0, "Classical Era");
+		AddEventTimelineEventData(500.0, 1500.0, "Middle Ages");
+		AddEventTimelineEventData(1500.0, 1800.0, "Early Modern Era");
+		AddEventTimelineEventData(1800.0, 2026.0, "Modern Era");
+
+		std::sort(m_appData.eventList.begin(), m_appData.eventList.end(),
+					 [](const TimelineEventData& a, const TimelineEventData& b) { return a.startDate < b.startDate; });
+
+		FindNewestDate();
+	}
+
    // Create the app
-   m_mainWindow = new MainForm(nullptr);
+   m_mainWindow = new MainForm(nullptr, &m_appData);
 
    wxString windowTitle = "History App v" SVS_STRINGIFY_A(HISTORY_APP_VERSION);
 
@@ -106,6 +137,30 @@ bool HistoryApp::EnsureSingleInstance()
    }
 
    return (true);
+}
+
+void HistoryApp::AddEventTimelineEventData(double startDate, double endDate, const std::string& name)
+{
+	TimelineEventData eventData;
+		
+	eventData.startDate		= startDate;
+	eventData.endDate			= endDate;
+	eventData.name				= name;
+
+	m_appData.eventList.push_back(eventData);
+}
+
+void HistoryApp::FindNewestDate()
+{
+	m_appData.newestDate = std::numeric_limits<int32_t>::min();
+
+	for (TimeLineEventListConstIter iter = m_appData.eventList.begin(); iter != m_appData.eventList.end(); iter++)
+	{
+		if (iter->endDate > m_appData.newestDate)
+		{
+			m_appData.newestDate = iter->endDate;
+		}
+	}
 }
 
 wxIMPLEMENT_APP(HistoryApp);

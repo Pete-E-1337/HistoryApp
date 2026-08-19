@@ -13,9 +13,11 @@
 #endif
 
 #include <memory>
+#include <string>
 #include <wx/app.h>
 //#include "WavebladeDriver.h"
 //#include "AutonomousController.h"
+#include "AppData.h"
 #include "Settings.h"
 
 #define HISTORY_APP_VERSION 1.0.0.0
@@ -35,6 +37,8 @@ public:
 private:
    void StoreExeName();
    bool EnsureSingleInstance();
+	void AddEventTimelineEventData(double startDate, double endDate, const std::string& name);
+	void FindNewestDate();
 
 private:
    template <typename T> using Ptr = std::unique_ptr<T>;
@@ -45,6 +49,7 @@ private:
 
    static std::string s_exeName;
 
+	AppData						m_appData;
    Settings                m_settings;
 //   WavebladeDriver*        m_wavebladeDriver       = nullptr;
 //   AutonomousController*   m_autonomousController  = nullptr;

@@ -10,7 +10,7 @@
 #include <mutex>
 //#include "GraphDialog.h"
 //#include "DxfRenderer.h"
-//#include "../AppData.h"
+#include "../AppData.h"
 //#include "ObjLoader.h"
 
 // Forward declarations
@@ -51,6 +51,11 @@ public:
 //	void ShowGraph(wxTimer* parentKeyTimer);
 //	bool IsGraphShowing();
 //	void CloseGraphDialog();
+	void SetAppData(AppData* appData) { m_appData = appData; }
+	void SetDate(double date);
+	void SetZoom(double percentage);
+	double GetDate();
+	static std::string DateToString(double date);
 
 	const std::string& GetDebugString() { return m_debugString; }
 protected:
@@ -71,6 +76,9 @@ private:
 	//void RenderSeaGrid();
 //	void ShowGraph(GraphType graphType);
 //	void OnUpdateGraphDataCallback(bool clearGraph);
+	void DrawTimelineEventDataList();
+	void DrawTimelineEvent(const TimelineEventData& eventData, float font_scale, float y1_pos, float y2_pos, uint8_t red = 255, uint8_t green = 255, uint8_t blue = 255);
+	void DrawDrawTimelineDateScale(float font_scale, float y_spacing);
 
 private:
 	// OpenGL view data
@@ -139,7 +147,10 @@ private:
 
 	//wxJoystick*											m_joyStick					= nullptr;
 	//JoystickData										m_joystickData;
-	OpenGLFont											m_openglFont;
+	AppData*					m_appData					= nullptr;
+	OpenGLFont				m_openglFont;
+	double					m_lowerDisplayDate		= 0.0;
+	double					m_upperDisplayDate		= 0.0;
 
 
 	wxDECLARE_NO_COPY_CLASS(TimelineGLCanvas);

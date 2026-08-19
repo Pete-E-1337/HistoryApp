@@ -17,10 +17,11 @@
 #include <wx/colour.h>
 #include <wx/settings.h>
 #include <wx/choice.h>
+#include <wx/textctrl.h>
 #include <wx/sizer.h>
 #include <wx/panel.h>
-#include <wx/slider.h>
 #include <wx/scrolbar.h>
+#include <wx/valtext.h>
 #include <wx/button.h>
 #include <wx/timer.h>
 #include <wx/menu.h>
@@ -45,10 +46,17 @@ namespace History
 			wxPanel* m_panel2;
 			wxStaticText* m_staticText1;
 			wxChoice* m_categoryChoice;
+			wxTextCtrl* m_debugTextCtrl;
+			wxPanel* m_timelineBasePanel;
 			wxPanel* m_timelinePanel;
+			wxPanel* m_panel8;
+			wxScrollBar* m_timelineZoomScrollBar;
+			wxPanel* m_panel6;
+			wxScrollBar* m_timelineDateScrollBar;
+			wxPanel* m_panel9;
 			wxPanel* m_panel7;
-			wxSlider* m_slider1;
-			wxScrollBar* m_scrollBar1;
+			wxStaticText* m_staticText3;
+			wxTextCtrl* m_dateTextCtrl;
 			wxPanel* m_bottomPanel;
 			wxStaticText* m_staticText2;
 			wxButton* m_exitButton;
@@ -57,6 +65,13 @@ namespace History
 			wxMenuBar* m_menuBar;
 			
 			// Virtual event handlers, overide them in your derived class
+			virtual void OnIdle( wxIdleEvent& event ) { event.Skip(); }
+			virtual void OnMainFormKeyDown( wxKeyEvent& event ) { event.Skip(); }
+			virtual void OnTimelineZoomScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }
+			virtual void OnTimelineDateScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }
+			virtual void OnDateTextCtrlLeftDown( wxMouseEvent& event ) { event.Skip(); }
+			virtual void OnDateTextCtrlOnText( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnDateTextCtrlTextEnter( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnExitButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnGuiTimer( wxTimerEvent& event ) { event.Skip(); }
 			virtual void OnRenderTickTimer( wxTimerEvent& event ) { event.Skip(); }

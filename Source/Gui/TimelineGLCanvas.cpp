@@ -23,7 +23,7 @@ SVS_WARNING_DISABLE(4100) // Unreferenced formal parameter
 
 //#define USE_REAL_WORLD_POSITION	// Enabling this forces the use of very large values and results in flickering caused by inaccuracies in the camera matrix calculations
 //#define RENDER_PENGUIN
-#define DRAW_DEBUG_AXIS
+//#define DRAW_DEBUG_AXIS
 //#define OUTPUT_OBJ_MODEL_INFO
 
 SVS_WARNING_DISABLE(4189) // local variable is initialized but not referenced
@@ -43,9 +43,25 @@ EVT_KEY_UP(TimelineGLCanvas::OnKeyUp)
 wxEND_EVENT_TABLE()
 
 //const double l_speedPerceptionScale = 2.0;
-const float l_debugAxisLength = 1.0f;
+const float		l_debugAxisLength		= 1.0f;
+const double	l_nearClipPlane		= 1.0;
+const double	l_farClipPlane			= 10000.0;
+const double	l_cameraFOV				= 45.0;
+const int		l_numLines				= 10;
 
-//const SVS::Vector3Dd l_worldTranslation = {-144.924786 * SVS::Spatial::DEGREESLAT2METRES, 0.0, 37.834297 * SVS::Spatial::DEGREESLAT2METRES };
+SVS::Drawing::RGB l_displayColors[] =
+{
+	{ 255, 197, 211 },	//Pastel Pink
+	{ 255, 105,  97 },	//Pastel Red
+	{ 255, 192, 103 },	//Pastel Orange
+	{ 255, 223, 186 },	//Pastel Yellow
+	{ 186, 255, 201 },	//Pastel Green
+	{ 167, 199, 231 },	//Pastel Blue
+	{ 179, 158, 181 }		//Pastel Purple
+};
+
+const int l_numDisplayColors = sizeof(l_displayColors) / sizeof(l_displayColors[0]);
+
 const SVS::Vector3Dd l_worldTranslation = { 0.0, 0.0, 0.0 };
 
 //int l_attributelist[5] = { WX_GL_RGBA,
@@ -231,6 +247,7 @@ void TimelineGLCanvas::ResetProjectionMode()
 	//GetClientSize(&w, &h);
 	//GetParent()->GetSize(&w, &h);
 	GetSize(&w, &h);
+//h += 200;
 
 	// It's up to the application code to update the OpenGL viewport settings.
 	// In order to avoid extensive context switching, consider doing this in
@@ -239,7 +256,7 @@ void TimelineGLCanvas::ResetProjectionMode()
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(60.0f, (GLfloat)w / h, 0.5, 1000.0);
+	gluPerspective(l_cameraFOV, (GLfloat)w / h, l_nearClipPlane, l_farClipPlane);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -295,7 +312,8 @@ void TimelineGLCanvas::Render()
 	}
 
 	// Clear
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+//	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);	// Black
+	glClearColor(255.0f, 255.0f, 255.0f, 1.0f);	// White
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glColor3f(1.0f, 1.0f, 1.0f);
 
@@ -323,7 +341,7 @@ void TimelineGLCanvas::Render()
 			  camera_up.x, camera_up.y, camera_up.z);
 
 	// Set debug string
-//	m_debugString = std::string("Camera Pos: ") + boost::str(boost::format("%.4lf, %.4lf, %.4lf") % camera_position.x % camera_position.y % camera_position.z).c_str();
+	m_debugString = std::string("Camera Pos: ") + boost::str(boost::format("%.1lf, %.1lf, %.1lf") % camera_position.x % camera_position.y % camera_position.z).c_str();
 
 	// Apply world translation
 	//glTranslated(l_worldTranslation.x, l_worldTranslation.y, l_worldTranslation.z);
@@ -331,9 +349,6 @@ void TimelineGLCanvas::Render()
 	// Do all the rendering
 //	RenderVessel();
 //	RenderSeaGrid();
-#ifdef DRAW_DEBUG_AXIS
-	DEBUG_DrawAxis();
-#endif
 
 	//// draw a rectangle using a quad
 	//{
@@ -355,23 +370,177 @@ void TimelineGLCanvas::Render()
 	//	glRectf(-0.5f, -0.5f, 0.5f, 0.5f);
 	//}
 
-	{
-		OpenGLHelper::DrawSolidRectangle(0.5f, 0.5f, 1.5f, 1.5f, 255, 200, 200);
-	}
+	//{
+	//	OpenGLHelper::DrawSolidRectangle(0.5f, 0.5f, 1.5f, 1.5f, 255, 200, 200);
+	//}
 
-	{
-		float fontScale = 1.0f;
+	//{
+	//	float fontScale = 1.0f;
 
-		glColor3ub(255, 255, 255);		// Red
-		OpenGLHelper::DrawText(0, 0, 0, m_openglFont, 0.01f, "This is some text");
-	//	OpenGLHelper::DrawText(x-4, y, 0, m_openglMapFont, 1.0f, "N");
-	}
+	//	glColor3ub(127, 127, 127);		// White
+	//	OpenGLHelper::DrawText(0, 0, 0, m_openglFont, 0.01f, "This is some text");
+	////	OpenGLHelper::DrawText(x-4, y, 0, m_openglMapFont, 1.0f, "N");
+	//}
+
+	DrawTimelineEventDataList();
+
+#ifdef DRAW_DEBUG_AXIS
+	DEBUG_DrawAxis();
+#endif
 
 	// Flush
 //	glFlush();
 
 	// Swap
 	SwapBuffers();
+}
+
+void TimelineGLCanvas::DrawTimelineEventDataList()
+{
+	SVS::Drawing::RGB color;
+	int colorIndex = 0;
+
+	float y_spacing			= 0.05 * m_cameraMatrix.GetPositionZ();
+//	const float start_y		= 0.0f;
+	const float start_y		= ((double)l_numLines / 2.0) * y_spacing;
+//	float font_scale			= 0.01f;
+	float font_scale			= 0.003f * m_cameraMatrix.GetPositionZ();
+	float date_font_scale	= 0.0025f * m_cameraMatrix.GetPositionZ();
+//	float text_height			= 0.125f;
+	float text_height			= 0.0417f * m_cameraMatrix.GetPositionZ();
+	float y1_pos				= start_y;
+	float y2_pos				= y1_pos - text_height;
+
+	DrawDrawTimelineDateScale(date_font_scale, y_spacing);
+
+	int line_number = 0;
+
+	for (TimeLineEventListConstIter iter = m_appData->eventList.begin(); iter != m_appData->eventList.end(); iter++)
+	{
+		color = l_displayColors[colorIndex++];
+
+		DrawTimelineEvent(*iter, font_scale, y1_pos, y2_pos, color.r, color.g, color.b);
+
+		if (colorIndex == l_numDisplayColors)
+		{
+			colorIndex = 0;
+		}
+
+		line_number++;
+
+		if (line_number == l_numLines)
+		{
+			line_number = 0;
+			y1_pos		= start_y;
+			y2_pos		= y1_pos - text_height;
+		}
+		else
+		{
+			y1_pos -= y_spacing;
+			y2_pos -= y_spacing;
+		}
+	}
+}
+
+void TimelineGLCanvas::DrawTimelineEvent(const TimelineEventData& eventData, float font_scale, float y1_pos, float y2_pos, uint8_t red, uint8_t green, uint8_t blue)
+{
+	// Draw event period bar
+
+	OpenGLHelper::DrawSolidRectangle(eventData.startDate, y1_pos, eventData.endDate, y2_pos, red, green, blue);
+
+	// Draw event name
+
+//	if (m_cameraMatrix.GetPositionZ() <= 75.0)
+	{
+		glColor3ub(0, 0, 0);		// Black
+		OpenGLHelper::DrawText(eventData.startDate, y1_pos, 0.0f, m_openglFont, font_scale, eventData.name);
+	}
+}
+
+void TimelineGLCanvas::DrawDrawTimelineDateScale(float font_scale, float y_spacing)
+{
+	float y = -(((double)l_numLines / 2.0) + 1) * y_spacing;
+	double x1 = m_cameraMatrix.GetPositionX() - m_cameraMatrix.GetPositionZ();
+	double x2 = m_cameraMatrix.GetPositionX() + m_cameraMatrix.GetPositionZ();
+
+	// Horizontal line
+	{
+		//SVS::Drawing::LineF horizontal_line(x1, y, x2, y, 0, 0, 0);
+		//OpenGLHelper::DrawLine(horizontal_line);
+		OpenGLHelper::DrawLine(x1, y, x2, y, 0, 0, 0);
+	}
+
+	// Dates
+	{
+		float x_spacing = 1.0f;
+		float line_height = y_spacing / 3.0;
+		float z = m_cameraMatrix.GetPositionZ();
+
+		if (z <= 5.0)
+			x_spacing = 1.0f;
+		else if (z <= 10.0)
+			x_spacing = 2.0f;
+		else if (z <= 20.0)
+			x_spacing = 5.0f;
+		else if (z <= 50.0)
+			x_spacing = 10.0f;
+		else if (z <= 100.0)
+			x_spacing = 20.0f;
+		else if (z <= 200.0)
+			x_spacing = 50.0f;
+		else if (z <= 500.0)
+			x_spacing = 100.0f;
+		else if (z <= 1000.0)
+			x_spacing = 200.0f;
+		else if (z <= 2000.0)
+			x_spacing = 500.0f;
+		else if (z <= 5000.0)
+			x_spacing = 1000.0f;
+		else if (z <= 10000.0)
+			x_spacing = 2000.0f;
+		else if (z <= 20000.0)
+			x_spacing = 5000.0f;
+
+//		float x = x1 - ((int)x1 % (int)x_spacing);
+		double x = x1 - std::fmod(x1, x_spacing);
+		float y1 = y;
+		float y2 = y - line_height;
+		float y3 = ((double)l_numLines / 2.0) * y_spacing;
+		float text_y = y2 - (y_spacing / 5.0);
+		std::string date_str;
+
+		while (x < x2)
+		{
+			// Vertical lines
+			OpenGLHelper::DrawLine(x, y1, x, y3, 230, 230, 230);	// Grey
+			OpenGLHelper::DrawLine(x, y1, x, y2, 0, 0, 0);			// Black
+
+			date_str = std::to_string((int64_t)x);
+			//date_str = DateToString(x);
+
+	      //glColor3ub(0, 0, 0);
+			OpenGLHelper::DrawText(x, text_y, 0.0f, m_openglFont, font_scale, date_str);
+
+			x += x_spacing;
+		}
+	}
+}
+
+std::string TimelineGLCanvas::DateToString(double date)
+{
+	std::string str;
+
+	if (date < 0.0)
+	{
+		date *= -1.0;
+		str = std::to_string((int64_t)date) + " BC";
+	}
+	else
+	{
+		str = std::to_string((int64_t)date) + " AD";
+	}
+
+	return str;
 }
 
 void TimelineGLCanvas::DEBUG_DrawAxis()
@@ -422,35 +591,49 @@ void TimelineGLCanvas::OnEraseBackground(wxEraseEvent& WXUNUSED(event))
 	// Do nothing, to avoid flashing on MSW
 }
 
+void TimelineGLCanvas::SetDate(double date)
+{
+	m_cameraMatrix.SetPositionX(date);
+}
+
+double TimelineGLCanvas::GetDate()
+{
+	return m_cameraMatrix.GetPositionX();
+}
+
+void TimelineGLCanvas::SetZoom(double percentage)
+{
+	double z = SVS::MiscMath::LinearInterpolate(l_nearClipPlane, l_farClipPlane, percentage);
+	m_cameraMatrix.SetPositionZ(z);
+}
+
 void TimelineGLCanvas::OnKeyDown(wxKeyEvent& event)
 {
 	// https://theasciicode.com.ar/
+
+	float step = (event.ShiftDown() == true) ? 10.0f : 1.0f;
 
 	int keyCode = event.GetKeyCode();
 
 	switch (keyCode)
 	{
-	//	case 'A':	m_inputData.keyData.leftKeyDown = true;									break;
-	//	case 'D':	m_inputData.keyData.rightKeyDown = true;									break;
+		case 'A':
+			SetDate(GetDate() - step);
+//			m_dateTextCtrl->SetValue(boost::str(boost::format("%.2lfº") % wbd.pitch.AsDouble()).c_str());
+			break;
+		case 'D':
+			SetDate(GetDate() + step);
+			break;
 		case 'W':
-			m_cameraMatrix.SetPositionZ(m_cameraMatrix.GetPositionZ() - 1.0f);
+			m_cameraMatrix.SetPositionZ((std::max)(l_nearClipPlane, m_cameraMatrix.GetPositionZ() - step));
 			break;
 		case 'S':
-			m_cameraMatrix.SetPositionZ(m_cameraMatrix.GetPositionZ() + 1.0f);
+			m_cameraMatrix.SetPositionZ((std::min)(l_farClipPlane, m_cameraMatrix.GetPositionZ() + step));
 			break;
 	//	case 306:	m_cameraSpeedScale = 2.0;														break;	// Shift key
-	//	case 'G':	m_inputData.keyData.graphKeyDown = true;									break;
-	//	case 'I':	m_inputData.keyData.noseDownKeyDown = true;								break;
-	//	case 'K':	m_inputData.keyData.noseUpKeyDown = true;									break;
-	//	case 'J':	m_inputData.keyData.turnLeftKeyDown = true;								break;
-	//	case 'L':	m_inputData.keyData.turnRightKeyDown = true;								break;
-	//	case 'U':	m_inputData.keyData.rollLeftKeyDown = true;								break;
-	//	case 'O':	m_inputData.keyData.rollRightKeyDown = true;								break;
-	//	case 'P':	m_inputData.keyData.speedUpKeyDown = true;								break;
-	//	case ';':	m_inputData.keyData.speedDownKeyDown = true;								break;
 	//	case WXK_ESCAPE:
 	//	case 'V':	m_inputData.keyData.exitKeyDown = true;									break;
-	//	default: break;
+		default: break;
 	}
 
 	event.Skip();

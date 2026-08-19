@@ -62,6 +62,7 @@ svs_src("Source Files\\"
 		Source/Settings
 #		Source/WavebladeDriver
 		Source/HistoryApp
+		Source/AppData
 	)
 	
 svs_src("Source Files\\Gui\\"
@@ -105,6 +106,7 @@ svs_auto_lib_src(
 		Spatial/Angle
 		Spatial/Vector3D
 		Structures/DrawingPrimitives
+		Structures/Colors
 		Time/SVSdatetime
 		Time/TimeHelper
 		Std.h
