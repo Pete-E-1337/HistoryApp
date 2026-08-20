@@ -24,6 +24,8 @@ public:
 	virtual void OnTimelineDateScrollBarScroll(wxScrollEvent& event) override;
 	virtual void OnTimelineZoomScrollBarScroll(wxScrollEvent& event) override;
 	virtual void OnMainFormKeyDown(wxKeyEvent& event) override;
+	virtual void OnDateSpinBtnSpinDown(wxSpinEvent& event) override;
+	virtual void OnDateSpinBtnSpinUp(wxSpinEvent& event) override;
 
 private:
    void Initialise();

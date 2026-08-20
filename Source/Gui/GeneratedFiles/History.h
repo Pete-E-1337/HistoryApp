@@ -22,6 +22,7 @@
 #include <wx/panel.h>
 #include <wx/scrolbar.h>
 #include <wx/valtext.h>
+#include <wx/spinbutt.h>
 #include <wx/button.h>
 #include <wx/timer.h>
 #include <wx/menu.h>
@@ -57,6 +58,7 @@ namespace History
 			wxPanel* m_panel7;
 			wxStaticText* m_staticText3;
 			wxTextCtrl* m_dateTextCtrl;
+			wxSpinButton* m_dateSpinBtn;
 			wxPanel* m_bottomPanel;
 			wxStaticText* m_staticText2;
 			wxButton* m_exitButton;
@@ -72,6 +74,8 @@ namespace History
 			virtual void OnDateTextCtrlLeftDown( wxMouseEvent& event ) { event.Skip(); }
 			virtual void OnDateTextCtrlOnText( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnDateTextCtrlTextEnter( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnDateSpinBtnSpinDown( wxSpinEvent& event ) { event.Skip(); }
+			virtual void OnDateSpinBtnSpinUp( wxSpinEvent& event ) { event.Skip(); }
 			virtual void OnExitButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnGuiTimer( wxTimerEvent& event ) { event.Skip(); }
 			virtual void OnRenderTickTimer( wxTimerEvent& event ) { event.Skip(); }

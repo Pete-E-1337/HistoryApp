@@ -19,13 +19,10 @@
 #include <GL/glu.h>
 #endif
 
-SVS_WARNING_DISABLE(4100) // Unreferenced formal parameter
-
-//#define USE_REAL_WORLD_POSITION	// Enabling this forces the use of very large values and results in flickering caused by inaccuracies in the camera matrix calculations
-//#define RENDER_PENGUIN
 //#define DRAW_DEBUG_AXIS
-//#define OUTPUT_OBJ_MODEL_INFO
+//#define DISPLAY_COMMON_ERA
 
+SVS_WARNING_DISABLE(4100) // Unreferenced formal parameter
 SVS_WARNING_DISABLE(4189) // local variable is initialized but not referenced
 
 wxBEGIN_EVENT_TABLE(TimelineGLCanvas, wxGLCanvas)
@@ -43,15 +40,31 @@ EVT_KEY_UP(TimelineGLCanvas::OnKeyUp)
 wxEND_EVENT_TABLE()
 
 //const double l_speedPerceptionScale = 2.0;
-const float		l_debugAxisLength								= 1.0f;
-const double	l_nearClipPlane								= 1.0;
-const double	l_farClipPlane									= 10000.0;
-const double	l_cameraFOV										= 45.0;
-const int		l_numLines										= 10;
-const double	l_horizontal_axis_height_accomodation	= 1.6;	// "lines" worth
+const float		l_debugAxisLength									= 1.0f;
+const double	l_nearClipPlane									= 1.0;
+const double	l_farClipPlane										= 10000.0;
+const double	l_cameraFOV											= 45.0;
+const int		l_numLines											= 15;
+const int		l_font_height										= 33;
+//const float		l_timeline_y_event_font_scale					= 0.003f;
+const float		l_timeline_y_event_font_scale					= 0.03f / (float)l_font_height; // 0.003 when font height is 10
+//const float		l_timeline_y_date_axis_font_scale			= 0.0025f;
+const float		l_timeline_y_date_axis_font_scale			= 0.83f * l_timeline_y_event_font_scale; // 0.0025 when font height is 10
+const float		l_timeline_y_event_text_height				= 0.0417f;
+const float		l_timeline_y_gap_event							= 0.05f;
+const float		l_timeline_y_gap_date_axis						= 0.007f;
+const float		l_timeline_y_date_axis_tick_height			= 0.017f;
+const float		l_timeline_y_gap_date_axis_text				= 0.006f;
+const float		l_timeline_y_date_axis_text_height			= 0.0245f;
+const float		l_timeline_y_total_height						= (l_numLines * l_timeline_y_gap_event) + 
+																				l_timeline_y_gap_date_axis + 
+																				l_timeline_y_date_axis_tick_height +
+																				l_timeline_y_gap_date_axis_text +
+																				l_timeline_y_date_axis_text_height;
 
 SVS::Drawing::RGB l_displayColors[] =
 {
+	{ 208, 240, 192 },	//Pastel Light Green
 	{ 255, 197, 211 },	//Pastel Pink
 	{ 255, 105,  97 },	//Pastel Red
 	{ 255, 192, 103 },	//Pastel Orange
@@ -217,7 +230,7 @@ void TimelineGLCanvas::InitGL()
 		//BREAK_UNLESS(ok);
 	}
 
-	bool ok = m_openglFont.Init("FreeSans.ttf", 10);
+	bool ok = m_openglFont.Init("FreeSans.ttf", l_font_height);
 
 	//bool ok = true;
 
@@ -401,18 +414,16 @@ void TimelineGLCanvas::DrawTimelineEventDataList()
 	SVS::Drawing::RGB color;
 	int colorIndex = 0;
 
-	float y_spacing			= 0.05 * m_cameraMatrix.GetPositionZ();
-//	const float start_y		= 0.0f;
-	const float start_y		= ((double)l_numLines / 2.0 + l_horizontal_axis_height_accomodation) * y_spacing;
-//	float font_scale			= 0.01f;
-	float font_scale			= 0.003f * m_cameraMatrix.GetPositionZ();
-	float date_font_scale	= 0.0025f * m_cameraMatrix.GetPositionZ();
-//	float text_height			= 0.125f;
-	float text_height			= 0.0417f * m_cameraMatrix.GetPositionZ();
-	float y1_pos				= start_y;
-	float y2_pos				= y1_pos - text_height;
+	float		y_spacing			= l_timeline_y_gap_event * m_cameraMatrix.GetPositionZ();
+	float		events_start_y		= (l_timeline_y_total_height / 2.0) * m_cameraMatrix.GetPositionZ();
+	float		events_end_y		= events_start_y - (((double)l_numLines) * y_spacing);
+	float		font_scale			= l_timeline_y_event_font_scale * m_cameraMatrix.GetPositionZ();
+	float		date_font_scale	= l_timeline_y_date_axis_font_scale * m_cameraMatrix.GetPositionZ();
+	float		text_height			= l_timeline_y_event_text_height * m_cameraMatrix.GetPositionZ();
+	float		y1_pos				= events_start_y;
+	float		y2_pos				= y1_pos - text_height;
 
-	DrawDrawTimelineDateScale(date_font_scale, y_spacing);
+	DrawTimelineBackground(date_font_scale, events_start_y, events_end_y);
 
 	int line_number = 0;
 
@@ -432,13 +443,93 @@ void TimelineGLCanvas::DrawTimelineEventDataList()
 		if (line_number == l_numLines)
 		{
 			line_number = 0;
-			y1_pos		= start_y;
+			y1_pos		= events_start_y;
 			y2_pos		= y1_pos - text_height;
 		}
 		else
 		{
 			y1_pos -= y_spacing;
 			y2_pos -= y_spacing;
+		}
+	}
+}
+
+void TimelineGLCanvas::DrawTimelineBackground(float font_scale, float events_start_y, float events_end_y)
+{
+	float		date_axis_y	= events_end_y - (l_timeline_y_gap_date_axis * m_cameraMatrix.GetPositionZ());
+	double	x1				= m_cameraMatrix.GetPositionX() - m_cameraMatrix.GetPositionZ();
+	double	x2				= m_cameraMatrix.GetPositionX() + m_cameraMatrix.GetPositionZ();
+
+	//// debug draw timeline start and end lines
+	//{
+	//	float yy = events_start_y;
+	//	OpenGLHelper::DrawLine(x1, yy, x2, yy, 255, 0, 0);
+	//	yy = yy - (l_timeline_y_total_height * m_cameraMatrix.GetPositionZ());
+	//	OpenGLHelper::DrawLine(x1, yy, x2, yy, 255, 0, 0);
+	//}
+
+	// Horizontal date axis
+	{
+		OpenGLHelper::DrawLine(x1, date_axis_y, x2, date_axis_y, 0, 0, 0);
+	}
+
+	// Dates
+	{
+		float	x_spacing	= 1.0;
+		float	tick_height	= l_timeline_y_date_axis_tick_height * m_cameraMatrix.GetPositionZ();
+		float	z				= m_cameraMatrix.GetPositionZ();
+
+		if (z <= 5.0)
+			x_spacing = 1.0;
+		else if (z <= 10.0)
+			x_spacing = 2.0;
+		else if (z <= 20.0)
+			x_spacing = 5.0;
+		else if (z <= 50.0)
+			x_spacing = 10.0;
+		else if (z <= 100.0)
+			x_spacing = 20.0;
+		else if (z <= 200.0)
+			x_spacing = 50.0;
+		else if (z <= 500.0)
+			x_spacing = 100.0;
+		else if (z <= 1000.0)
+			x_spacing = 200.0;
+		else if (z <= 2000.0)
+			x_spacing = 500.0;
+		else if (z <= 5000.0)
+			x_spacing = 1000.0;
+		else if (z <= 10000.0)
+			x_spacing = 2000.0;
+		else if (z <= 20000.0)
+			x_spacing = 5000.0;
+
+		double	x			= x1 - std::fmod(x1, x_spacing);
+		float		tick_y1	= date_axis_y;
+		float		tick_y2	= date_axis_y - tick_height;
+		float		text_y	= tick_y2 - (l_timeline_y_gap_date_axis_text * m_cameraMatrix.GetPositionZ());
+		std::string date_str;
+
+		while (x < x2)
+		{
+			// Vertical lines
+			OpenGLHelper::DrawLine(x, tick_y1, x, events_start_y, 210, 210, 210, 1.0f, 1, 0x0F0F);	// Grey, dashed
+
+			// Ticks
+			OpenGLHelper::DrawLine(x, tick_y1, x, tick_y2, 0, 0, 0);											// Black
+
+#ifdef DISPLAY_COMMON_ERA
+			date_str = DateToString(x);
+#else
+			date_str = std::to_string((int64_t)x);
+#endif
+
+	      //glColor3ub(0, 0, 0);
+
+			// Dates
+			OpenGLHelper::DrawText(x, (double)text_y, 0.0, m_openglFont, font_scale, date_str);
+
+			x += x_spacing;
 		}
 	}
 }
@@ -458,75 +549,6 @@ void TimelineGLCanvas::DrawTimelineEvent(const TimelineEventData& eventData, flo
 	}
 }
 
-void TimelineGLCanvas::DrawDrawTimelineDateScale(float font_scale, float y_spacing)
-{
-	float y = -(((double)l_numLines / 2.0) + 1) * y_spacing;
-	double x1 = m_cameraMatrix.GetPositionX() - m_cameraMatrix.GetPositionZ();
-	double x2 = m_cameraMatrix.GetPositionX() + m_cameraMatrix.GetPositionZ();
-
-	// Horizontal line
-	{
-		//SVS::Drawing::LineF horizontal_line(x1, y, x2, y, 0, 0, 0);
-		//OpenGLHelper::DrawLine(horizontal_line);
-		OpenGLHelper::DrawLine(x1, y, x2, y, 0, 0, 0);
-	}
-
-	// Dates
-	{
-		float x_spacing = 1.0f;
-		float line_height = y_spacing / 3.0;
-		float z = m_cameraMatrix.GetPositionZ();
-
-		if (z <= 5.0)
-			x_spacing = 1.0f;
-		else if (z <= 10.0)
-			x_spacing = 2.0f;
-		else if (z <= 20.0)
-			x_spacing = 5.0f;
-		else if (z <= 50.0)
-			x_spacing = 10.0f;
-		else if (z <= 100.0)
-			x_spacing = 20.0f;
-		else if (z <= 200.0)
-			x_spacing = 50.0f;
-		else if (z <= 500.0)
-			x_spacing = 100.0f;
-		else if (z <= 1000.0)
-			x_spacing = 200.0f;
-		else if (z <= 2000.0)
-			x_spacing = 500.0f;
-		else if (z <= 5000.0)
-			x_spacing = 1000.0f;
-		else if (z <= 10000.0)
-			x_spacing = 2000.0f;
-		else if (z <= 20000.0)
-			x_spacing = 5000.0f;
-
-//		float x = x1 - ((int)x1 % (int)x_spacing);
-		double x = x1 - std::fmod(x1, x_spacing);
-		float y1 = y;
-		float y2 = y - line_height;
-		float y3 = ((double)l_numLines / 2.0 + l_horizontal_axis_height_accomodation) * y_spacing;
-		float text_y = y2 - (y_spacing / 5.0);
-		std::string date_str;
-
-		while (x < x2)
-		{
-			// Vertical lines
-			OpenGLHelper::DrawLine(x, y1, x, y3, 230, 230, 230);	// Grey
-			OpenGLHelper::DrawLine(x, y1, x, y2, 0, 0, 0);			// Black
-
-			date_str = std::to_string((int64_t)x);
-			//date_str = DateToString(x);
-
-	      //glColor3ub(0, 0, 0);
-			OpenGLHelper::DrawText(x, text_y, 0.0f, m_openglFont, font_scale, date_str);
-
-			x += x_spacing;
-		}
-	}
-}
-
 std::string TimelineGLCanvas::DateToString(double date)
 {
 	std::string str;
@@ -534,11 +556,11 @@ std::string TimelineGLCanvas::DateToString(double date)
 	if (date < 0.0)
 	{
 		date *= -1.0;
-		str = std::to_string((int64_t)date) + " BC";
+		str = std::to_string((int64_t)date) + " BCE";	// BC
 	}
 	else
 	{
-		str = std::to_string((int64_t)date) + " AD";
+		str = std::to_string((int64_t)date) + " CE";	// AD
 	}
 
 	return str;

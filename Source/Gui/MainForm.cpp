@@ -265,3 +265,21 @@ void MainForm::OnMainFormKeyDown(wxKeyEvent& event)
 
 	event.Skip();
 }
+
+void MainForm::OnDateSpinBtnSpinDown(wxSpinEvent& event)
+{
+	m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() - 1.0);
+
+	UpdateDateText();
+
+	event.Skip();
+}
+
+void MainForm::OnDateSpinBtnSpinUp(wxSpinEvent& event)
+{
+	m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() + 1.0);
+
+	UpdateDateText();
+
+	event.Skip();
+}

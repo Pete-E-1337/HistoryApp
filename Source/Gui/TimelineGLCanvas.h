@@ -78,7 +78,7 @@ private:
 //	void OnUpdateGraphDataCallback(bool clearGraph);
 	void DrawTimelineEventDataList();
 	void DrawTimelineEvent(const TimelineEventData& eventData, float font_scale, float y1_pos, float y2_pos, uint8_t red = 255, uint8_t green = 255, uint8_t blue = 255);
-	void DrawDrawTimelineDateScale(float font_scale, float y_spacing);
+	void DrawTimelineBackground(float font_scale, float events_start_y, float events_end_y);
 
 private:
 	// OpenGL view data

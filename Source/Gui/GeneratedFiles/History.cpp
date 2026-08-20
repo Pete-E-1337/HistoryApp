@@ -138,7 +138,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	wxFlexGridSizer* fgSizer6;
 	fgSizer6 = new wxFlexGridSizer( 1, 0, 0, 0 );
 	fgSizer6->AddGrowableCol( 0 );
-	fgSizer6->AddGrowableCol( 3 );
+	fgSizer6->AddGrowableCol( 4 );
 	fgSizer6->SetFlexibleDirection( wxBOTH );
 	fgSizer6->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
@@ -149,8 +149,11 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_staticText3->Wrap( -1 );
 	fgSizer6->Add( m_staticText3, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 	
-	m_dateTextCtrl = new wxTextCtrl( m_panel7, wxID_ANY, wxT("4540000000 BC"), wxDefaultPosition, wxSize( 90,-1 ), wxTE_CENTRE|wxTE_PROCESS_ENTER|wxSUNKEN_BORDER );
-	fgSizer6->Add( m_dateTextCtrl, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+	m_dateTextCtrl = new wxTextCtrl( m_panel7, wxID_ANY, wxT("4540000000 BCE"), wxDefaultPosition, wxSize( 100,-1 ), wxTE_CENTRE|wxTE_PROCESS_ENTER );
+	fgSizer6->Add( m_dateTextCtrl, 0, wxALIGN_CENTER_VERTICAL, 5 );
+	
+	m_dateSpinBtn = new wxSpinButton( m_panel7, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+	fgSizer6->Add( m_dateSpinBtn, 0, wxEXPAND, 5 );
 	
 	
 	fgSizer6->Add( 0, 0, 1, wxEXPAND, 5 );
@@ -185,7 +188,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_bottomPanel->SetSizer( fgSizer4 );
 	m_bottomPanel->Layout();
 	fgSizer4->Fit( m_bottomPanel );
-	fgSizer1->Add( m_bottomPanel, 1, wxEXPAND | wxALL, 0 );
+	fgSizer1->Add( m_bottomPanel, 1, wxALL|wxEXPAND, 0 );
 	
 	
 	this->SetSizer( fgSizer1 );
@@ -222,6 +225,8 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_dateTextCtrl->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateTextCtrlLeftDown ), NULL, this );
 	m_dateTextCtrl->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainForm::OnDateTextCtrlOnText ), NULL, this );
 	m_dateTextCtrl->Connect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainForm::OnDateTextCtrlTextEnter ), NULL, this );
+	m_dateSpinBtn->Connect( wxEVT_SCROLL_LINEDOWN, wxSpinEventHandler( MainForm::OnDateSpinBtnSpinDown ), NULL, this );
+	m_dateSpinBtn->Connect( wxEVT_SCROLL_LINEUP, wxSpinEventHandler( MainForm::OnDateSpinBtnSpinUp ), NULL, this );
 	m_exitButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnExitButtonClick ), NULL, this );
 	this->Connect( MAIN_GUI_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnGuiTimer ) );
 	this->Connect( MAIN_RENDER_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnRenderTickTimer ) );
@@ -253,6 +258,8 @@ MainForm::~MainForm()
 	m_dateTextCtrl->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateTextCtrlLeftDown ), NULL, this );
 	m_dateTextCtrl->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainForm::OnDateTextCtrlOnText ), NULL, this );
 	m_dateTextCtrl->Disconnect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainForm::OnDateTextCtrlTextEnter ), NULL, this );
+	m_dateSpinBtn->Disconnect( wxEVT_SCROLL_LINEDOWN, wxSpinEventHandler( MainForm::OnDateSpinBtnSpinDown ), NULL, this );
+	m_dateSpinBtn->Disconnect( wxEVT_SCROLL_LINEUP, wxSpinEventHandler( MainForm::OnDateSpinBtnSpinUp ), NULL, this );
 	m_exitButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnExitButtonClick ), NULL, this );
 	this->Disconnect( MAIN_GUI_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnGuiTimer ) );
 	this->Disconnect( MAIN_RENDER_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnRenderTickTimer ) );
