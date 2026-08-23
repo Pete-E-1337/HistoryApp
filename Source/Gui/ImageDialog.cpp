@@ -70,7 +70,7 @@ void ImageDialog::OnImageDialogSize(wxSizeEvent& event)
 	//m_bottomPanel->GetSize(&bottomPanelWidth, &bottomPanelHeight);
 	//w = size.GetWidth();
 	//h = size.GetHeight() - 200;
-	h = h - 26;
+	h = h - 26; // For some unknown reason it doesn't keep the "ok" button visible. Add this code to compensate :/
 
 	if (h > 0)
 	{
