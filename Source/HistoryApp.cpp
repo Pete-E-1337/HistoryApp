@@ -92,7 +92,7 @@ bool HistoryApp::OnInit()
 		AddEventTimelineEventData(-1200.0,			-500.0,	"Iron Age",				"");
 		AddEventTimelineEventData(-500.0,			500.0,	"Classical Era",		"");
 		AddEventTimelineEventData(500.0,				1500.0,	"Middle Ages",			"");
-		AddEventTimelineEventData(362.0,				406.0,	"",						"Data/Images/362AD.jpg");
+		AddEventTimelineEventData(-27.0,				406.0,	"",						"Data/Images/362AD.jpg");
 		AddEventTimelineEventData(406.0,				420.0,	"",						"Data/Images/406AD.jpg");
 		AddEventTimelineEventData(420.0,				451.0,	"",						"Data/Images/420AD.jpg");
 		AddEventTimelineEventData(451.0,				476.0,	"",						"Data/Images/451AD.jpg");

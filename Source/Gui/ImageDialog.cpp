@@ -9,9 +9,12 @@
 #include <SVSLibrary/Compiler/Breakpoint.h>
 //#include <SVSLibrary/StringUtilities.h>
 
+SVS_WARNING_DISABLE(4189) // local variable is initialized but not referenced
+
 ImageDialog::ImageDialog(wxWindow* parent) :
 	History::ImageDialog(parent)
 {
+	m_bottomPanelHeight = m_bottomPanel->GetSize().GetHeight();
 }
 
 ImageDialog::~ImageDialog()
@@ -29,7 +32,7 @@ bool ImageDialog::ShowModalDialogue()
 	m_imageBitmap->GetSize(&w, &h);
 	wxImage shrunkImg = m_image.Scale(w, h, wxIMAGE_QUALITY_HIGH);
 	m_imageBitmap->SetBitmap(shrunkImg);
-//	m_imageBitmap->Refresh();
+	m_imageBitmap->Refresh();
 
    return (IsAffirmativeResult(ShowModal()));
 }
@@ -65,17 +68,26 @@ void ImageDialog::OnImageDialogSize(wxSizeEvent& event)
 
 	m_imageBitmap->GetSize(&w, &h);
 
-	//int bottomPanelWidth, bottomPanelHeight;
-	//wxSize size = event.GetSize();
-	//m_bottomPanel->GetSize(&bottomPanelWidth, &bottomPanelHeight);
-	//w = size.GetWidth();
-	//h = size.GetHeight() - 200;
-	h = h - 26; // For some unknown reason it doesn't keep the "ok" button visible. Add this code to compensate :/
+//int h1 = m_topPanel->GetSize().GetHeight();
+//int h2 = m_imageBitmap->GetSize().GetHeight();
+//int h3 = m_imageBitmap->GetClientSize().GetHeight();
+//
+//int h4 = m_bottomPanel->GetSize().GetHeight();
+//int h5 = m_bottomPanel->GetSize().GetY();
+
+//int bottomPanelWidth, bottomPanelHeight;
+//wxSize size = event.GetSize();
+//m_bottomPanel->GetSize(&bottomPanelWidth, &bottomPanelHeight);
+//w = size.GetWidth();
+//h = size.GetHeight() - 200;
+
+	h = h - m_bottomPanelHeight; // For some unknown reason it doesn't keep the "ok" button visible. Add this code to compensate :/
 
 	if (h > 0)
 	{
 		wxImage shrunkImg = m_image.Scale(w, h, wxIMAGE_QUALITY_HIGH);
 		m_imageBitmap->SetBitmap(shrunkImg);
+		m_imageBitmap->Refresh();
 	}
 
 	event.Skip(); // Call default size behavior for sizers

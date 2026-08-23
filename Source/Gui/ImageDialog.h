@@ -24,8 +24,9 @@ private:
    bool IsAffirmativeResult(int32_t dialogueResult);
 
 private:
-	std::string m_imageFilename;
-	wxImage	m_image;
+	std::string	m_imageFilename;
+	wxImage		m_image;
+	int			m_bottomPanelHeight;		// required to deal with a GUI bug of the panel disappearing during resizing :/
 };
 
 #endif // IMAGE_DIALOG_H

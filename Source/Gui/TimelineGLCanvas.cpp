@@ -457,8 +457,8 @@ void TimelineGLCanvas::DrawTimelineEventDataList()
 void TimelineGLCanvas::DrawTimelineBackground(float font_scale, float events_start_y, float events_end_y)
 {
 	float		date_axis_y	= events_end_y - (l_timeline_y_gap_date_axis * m_cameraMatrix.GetPositionZ());
-	double	x1				= m_cameraMatrix.GetPositionX() - m_cameraMatrix.GetPositionZ();
-	double	x2				= m_cameraMatrix.GetPositionX() + m_cameraMatrix.GetPositionZ();
+	double	x1				= m_cameraMatrix.GetPositionX() - m_cameraMatrix.GetPositionZ() * 1.5;
+	double	x2				= m_cameraMatrix.GetPositionX() + m_cameraMatrix.GetPositionZ() * 1.5;
 
 	//// debug draw timeline start and end lines
 	//{

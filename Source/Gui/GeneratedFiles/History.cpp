@@ -66,6 +66,8 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	fgSizer3->Add( m_panel10, 1, wxEXPAND | wxALL, 5 );
 	
 	m_panel11 = new wxPanel( m_panel2, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel11->SetBackgroundColour( wxColour( 255, 255, 255 ) );
+	
 	wxFlexGridSizer* fgSizer13;
 	fgSizer13 = new wxFlexGridSizer( 0, 2, 0, 0 );
 	fgSizer13->SetFlexibleDirection( wxBOTH );
@@ -78,7 +80,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_panel11->SetSizer( fgSizer13 );
 	m_panel11->Layout();
 	fgSizer13->Fit( m_panel11 );
-	fgSizer3->Add( m_panel11, 1, wxEXPAND | wxALL, 0 );
+	fgSizer3->Add( m_panel11, 1, wxEXPAND|wxRIGHT|wxTOP, 5 );
 	
 	
 	m_panel2->SetSizer( fgSizer3 );

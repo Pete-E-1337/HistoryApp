@@ -129,6 +129,8 @@ void MainForm::Initialise()
 
 	m_runImageUpdateThread = true;
 	m_imageUpdateThread = new boost::thread(boost::bind(&MainForm::ImageUpdateThread, this));
+
+	m_image_requires_update = true;
 }
 
 void MainForm::LoadSettings()
@@ -293,6 +295,11 @@ void MainForm::UpdateImage()
 				// Clear the bitmap
 				m_bitmap->SetBitmap(wxNullBitmap);
 				m_bitmap->Refresh();
+
+				if (m_imageDialog != nullptr)
+				{
+					m_imageDialog->SetImageFilename("");
+				}
 			}
 		}
 

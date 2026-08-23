@@ -56,7 +56,7 @@ private:
 	TimelineGLCanvas*				m_timelineCanvas			= nullptr;
 	bool								m_updating_date_text		= true;
 	bool								m_image_requires_update	= true;
-	double							m_old_date					= 0.0;
+	double							m_old_date					= std::numeric_limits<double>::lowest();
 	bool								m_runImageUpdateThread	= false;
 	boost::thread*					m_imageUpdateThread		= nullptr;
 };
