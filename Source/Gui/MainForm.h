@@ -5,8 +5,10 @@
 #include <SVSLibrary/Std.h>
 #include <SVSLibrary/Execution/BoostIoService.h>
 #include <SVSLibrary/Execution/Mutex.h>
+#include "ImageDialog.h"
 #include "TimelineGLCanvas.h"
 #include "../AppData.h"
+#include <boost/thread.hpp>
 
 class MainForm : public History::MainForm
 {
@@ -26,6 +28,7 @@ public:
 	virtual void OnMainFormKeyDown(wxKeyEvent& event) override;
 	virtual void OnDateSpinBtnSpinDown(wxSpinEvent& event) override;
 	virtual void OnDateSpinBtnSpinUp(wxSpinEvent& event) override;
+	virtual void OnBitmapLeftDown(wxMouseEvent& event) override;
 
 private:
    void Initialise();
@@ -40,8 +43,11 @@ private:
 	void SetAppData(AppData* appData);
 	void SetTimelineDateScrollBarPositionFromDate(double date);
 	void UpdateDateText();
+	void UpdateImage();
+	void ImageUpdateThread(void);
 
 private:
+	ImageDialog*					m_imageDialog				= nullptr;
    SVS::BoostIoService			m_ioService;
 	AppData*							m_appData					= nullptr;
 //	AboutDialog*					m_aboutDialog									= nullptr;
@@ -49,6 +55,10 @@ private:
 //	FILE*								m_report = nullptr;
 	TimelineGLCanvas*				m_timelineCanvas			= nullptr;
 	bool								m_updating_date_text		= true;
+	bool								m_image_requires_update	= true;
+	double							m_old_date					= 0.0;
+	bool								m_runImageUpdateThread	= false;
+	boost::thread*					m_imageUpdateThread		= nullptr;
 };
 
 #endif // MAINFORM_H

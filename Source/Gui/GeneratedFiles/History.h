@@ -20,6 +20,10 @@
 #include <wx/textctrl.h>
 #include <wx/sizer.h>
 #include <wx/panel.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/icon.h>
+#include <wx/statbmp.h>
 #include <wx/scrolbar.h>
 #include <wx/valtext.h>
 #include <wx/spinbutt.h>
@@ -27,6 +31,7 @@
 #include <wx/timer.h>
 #include <wx/menu.h>
 #include <wx/frame.h>
+#include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -45,9 +50,12 @@ namespace History
 		protected:
 			wxPanel* m_mainPanel;
 			wxPanel* m_panel2;
+			wxPanel* m_panel10;
 			wxStaticText* m_staticText1;
 			wxChoice* m_categoryChoice;
 			wxTextCtrl* m_debugTextCtrl;
+			wxPanel* m_panel11;
+			wxStaticBitmap* m_bitmap;
 			wxPanel* m_timelineBasePanel;
 			wxPanel* m_timelinePanel;
 			wxPanel* m_panel8;
@@ -69,6 +77,7 @@ namespace History
 			// Virtual event handlers, overide them in your derived class
 			virtual void OnIdle( wxIdleEvent& event ) { event.Skip(); }
 			virtual void OnMainFormKeyDown( wxKeyEvent& event ) { event.Skip(); }
+			virtual void OnBitmapLeftDown( wxMouseEvent& event ) { event.Skip(); }
 			virtual void OnTimelineZoomScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }
 			virtual void OnTimelineDateScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }
 			virtual void OnDateTextCtrlLeftDown( wxMouseEvent& event ) { event.Skip(); }
@@ -83,9 +92,35 @@ namespace History
 		
 		public:
 			
-			MainForm( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("History App"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1000,700 ), long style = wxCAPTION|wxCLOSE_BOX|wxRESIZE_BORDER|wxSYSTEM_MENU|wxTAB_TRAVERSAL );
+			MainForm( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("History App"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1000,700 ), long style = wxCAPTION|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxRESIZE_BORDER|wxSYSTEM_MENU|wxTAB_TRAVERSAL );
 			
 			~MainForm();
+		
+	};
+	
+	///////////////////////////////////////////////////////////////////////////////
+	/// Class ImageDialog
+	///////////////////////////////////////////////////////////////////////////////
+	class ImageDialog : public wxDialog 
+	{
+		private:
+		
+		protected:
+			wxPanel* m_topPanel;
+			wxStaticBitmap* m_imageBitmap;
+			wxPanel* m_bottomPanel;
+			wxStdDialogButtonSizer* ImageSdbSizer;
+			wxButton* ImageSdbSizerOK;
+			
+			// Virtual event handlers, overide them in your derived class
+			virtual void OnImageDialogSize( wxSizeEvent& event ) { event.Skip(); }
+			virtual void OnImageSdbSizerOKButtonClick( wxCommandEvent& event ) { event.Skip(); }
+			
+		
+		public:
+			
+			ImageDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 813,679 ), long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER ); 
+			~ImageDialog();
 		
 	};
 	

@@ -27,7 +27,10 @@ SVS_WARNING_DISABLE(4189) // local variable is initialized but not referenced
 
 SVS_WARNING_DISABLE(4100) // Unreferenced formal parameter in boost
 
-const char* l_settingsFilename = "settings.txt";
+const char*			l_settingsFilename				= "settings.txt";
+static const int	l_guiTimerInterval				= 300;
+static const int	l_renderTimerInterval			= 40;
+static const int	l_imageUpdateThreadInterval	= 300;
 
 MainForm::MainForm(wxWindow* parent, AppData* appData) :
 	History::MainForm(parent),
@@ -47,7 +50,16 @@ MainForm::~MainForm()
 //	m_spinControlDoubleBottomIntegral->Disconnect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinDoubleEventHandler( MainForm::OnBottomIntegralDoubleSpinCtrl ), NULL, this);
 //	m_spinControlDoubleBottomDerivative->Disconnect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinDoubleEventHandler( MainForm::OnBottomDerivativeDoubleSpinCtrl ), NULL, this);
 //
-//	m_guiTimer.Stop();
+	if (m_imageUpdateThread != nullptr)
+	{
+		m_runImageUpdateThread = false;
+		m_imageUpdateThread->join();
+		delete m_imageUpdateThread;
+		m_imageUpdateThread = nullptr;
+	}
+
+	m_guiTimer.Stop();
+	m_renderTickTimer.Stop();
 //
 //	SaveSettings();
 //
@@ -69,6 +81,9 @@ MainForm::~MainForm()
 //		m_report = nullptr;
 //	}
 
+   m_imageDialog->Destroy();
+   m_imageDialog = nullptr;
+
 	if (m_timelineCanvas != nullptr)
 	{
 //		delete m_timelineCanvas;	// newed components are deleted by the wxWidgets system
@@ -81,10 +96,25 @@ void MainForm::Initialise()
 {
 	LoadSettings();
 
+	 // Call this before loading or processing any images
+    wxInitAllImageHandlers();
+
+	//// load a bitmap
+	//{
+	//	wxBitmap bitmap(wxT("Data/Images/362AD.jpg"), wxBITMAP_TYPE_JPEG);
+	//	wxImage img = bitmap.ConvertToImage();
+	//	int w, h;
+	//	m_bitmap->GetSize(&w, &h);
+	//	wxImage shrunkImg = img.Scale(w, h, wxIMAGE_QUALITY_HIGH);
+	//	m_bitmap->SetBitmap(shrunkImg);
+	// }
+
 	m_timelineCanvas = new TimelineGLCanvas(m_timelinePanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	wxSizer* sizer = m_timelinePanel->GetSizer();
 	sizer->Add(m_timelineCanvas, 1, wxEXPAND);
 	m_timelineCanvas->SetFocus();
+
+	m_imageDialog		= new ImageDialog(this);
 
 	m_dateTextCtrl->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 
@@ -94,8 +124,11 @@ void MainForm::Initialise()
 
 	SetAppData(m_appData);
 
-	m_guiTimer.Start(1000);
-	m_renderTickTimer.Start(40);
+	m_guiTimer.Start(l_guiTimerInterval);
+	m_renderTickTimer.Start(l_renderTimerInterval);
+
+	m_runImageUpdateThread = true;
+	m_imageUpdateThread = new boost::thread(boost::bind(&MainForm::ImageUpdateThread, this));
 }
 
 void MainForm::LoadSettings()
@@ -126,8 +159,25 @@ void MainForm::OnExitButtonClick(wxCommandEvent& event)
 	event.Skip();
 }
 
+void MainForm::ImageUpdateThread(void)
+{
+	while (m_runImageUpdateThread == true)
+	{
+		UpdateImage();
+
+		boost::this_thread::sleep(boost::posix_time::milliseconds(l_imageUpdateThreadInterval));
+	}
+}
+
 void MainForm::OnGuiTimer(wxTimerEvent& event)
 {
+	if (m_timelineCanvas != nullptr)
+	{
+		m_debugTextCtrl->SetValue(m_timelineCanvas->GetDebugString());
+
+		UpdateDateText();
+	}
+
 	event.Skip();
 }
 
@@ -162,6 +212,7 @@ void MainForm::OnDateTextCtrlTextEnter(wxCommandEvent& event)
 	m_timelineCanvas->SetDate(date);
 	m_timelineCanvas->SetFocus();
 	m_updating_date_text = true;
+	m_image_requires_update = true;
 
 	event.Skip();
 }
@@ -175,12 +226,13 @@ void MainForm::OnDateTextCtrlLeftDown(wxMouseEvent& event)
 
 void MainForm::OnIdle(wxIdleEvent& event)
 {
-	if (m_timelineCanvas != nullptr)
-	{
-		m_debugTextCtrl->SetValue(m_timelineCanvas->GetDebugString());
+	//if (m_timelineCanvas != nullptr)
+	//{
+	//	m_debugTextCtrl->SetValue(m_timelineCanvas->GetDebugString());
 
-		UpdateDateText();
-	}
+	//	UpdateDateText();
+	//	UpdateImage();
+	//}
 
 	event.Skip();
 }
@@ -191,12 +243,60 @@ void MainForm::UpdateDateText()
 
 	if (m_updating_date_text == true)
 	{
-		std::string str;
 		double date = m_timelineCanvas->GetDate();
-
-		str = TimelineGLCanvas::DateToString(date);
+		std::string str = TimelineGLCanvas::DateToString(date);
 
 		m_dateTextCtrl->SetValue(str);
+	}
+}
+
+void MainForm::UpdateImage()
+{
+	if (m_image_requires_update == true)
+	{
+		double date = m_timelineCanvas->GetDate();
+
+		if (SVS::Math::InRange(m_old_date, date - 0.01, date + 0.01) == false)
+		{
+			m_old_date = date;
+
+			bool image_found = false;
+
+			for (TimeLineEventListConstIter iter = m_appData->imageList.begin(); iter != m_appData->imageList.end(); iter++)
+			{
+				if (SVS::Math::InRange(date, iter->startDate, iter->endDate) == true)
+				{
+					if (iter->imageFilename.empty() == false)
+					{
+						int w, h;
+
+						wxBitmap bitmap(iter->imageFilename, wxBITMAP_TYPE_JPEG);
+						wxImage img = bitmap.ConvertToImage();
+						m_bitmap->GetSize(&w, &h);
+						wxImage shrunkImg = img.Scale(w, h, wxIMAGE_QUALITY_HIGH);
+						m_bitmap->SetBitmap(shrunkImg);
+						m_bitmap->Refresh();
+
+						if (m_imageDialog != nullptr)
+						{
+							m_imageDialog->SetImageFilename(iter->imageFilename);
+						}
+
+						image_found = true;
+						break;
+					 }
+				}
+			}
+
+			if (image_found == false)
+			{
+				// Clear the bitmap
+				m_bitmap->SetBitmap(wxNullBitmap);
+				m_bitmap->Refresh();
+			}
+		}
+
+		m_image_requires_update = false;
 	}
 }
 
@@ -211,6 +311,7 @@ void MainForm::OnTimelineDateScrollBarScroll(wxScrollEvent& event)
 		m_timelineCanvas->SetDate(date);
 
 		UpdateDateText();
+		m_image_requires_update = true;
 	}
 
 	event.Skip();
@@ -271,6 +372,7 @@ void MainForm::OnDateSpinBtnSpinDown(wxSpinEvent& event)
 	m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() - 1.0);
 
 	UpdateDateText();
+	m_image_requires_update = true;
 
 	event.Skip();
 }
@@ -280,6 +382,19 @@ void MainForm::OnDateSpinBtnSpinUp(wxSpinEvent& event)
 	m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() + 1.0);
 
 	UpdateDateText();
+	m_image_requires_update = true;
+
+	event.Skip();
+}
+
+void MainForm::OnBitmapLeftDown(wxMouseEvent& event)
+{
+	if (m_imageDialog->GetImageFilename().empty() == false)
+	{
+		if (m_imageDialog->ShowModalDialogue() == true)
+		{
+		}
+	}
 
 	event.Skip();
 }

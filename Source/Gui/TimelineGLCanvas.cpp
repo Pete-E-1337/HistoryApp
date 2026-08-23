@@ -531,6 +531,10 @@ void TimelineGLCanvas::DrawTimelineBackground(float font_scale, float events_sta
 
 			x += x_spacing;
 		}
+
+		// Centre date
+
+		OpenGLHelper::DrawLine(m_cameraMatrix.GetPositionX(), tick_y1, m_cameraMatrix.GetPositionX(), events_start_y, 255, 0, 0, 1.0f, 1, 0x0F0F);	// Red, dashed
 	}
 }
 

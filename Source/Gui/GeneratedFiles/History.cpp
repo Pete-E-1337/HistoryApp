@@ -34,23 +34,51 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	
 	m_panel2 = new wxPanel( m_mainPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxFlexGridSizer* fgSizer3;
-	fgSizer3 = new wxFlexGridSizer( 0, 0, 0, 0 );
-	fgSizer3->AddGrowableCol( 2 );
+	fgSizer3 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer3->AddGrowableCol( 0 );
 	fgSizer3->SetFlexibleDirection( wxBOTH );
 	fgSizer3->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
-	m_staticText1 = new wxStaticText( m_panel2, wxID_ANY, wxT("Category"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_panel10 = new wxPanel( m_panel2, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxFlexGridSizer* fgSizer12;
+	fgSizer12 = new wxFlexGridSizer( 0, 0, 0, 0 );
+	fgSizer12->AddGrowableCol( 2 );
+	fgSizer12->SetFlexibleDirection( wxBOTH );
+	fgSizer12->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_staticText1 = new wxStaticText( m_panel10, wxID_ANY, wxT("Category"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText1->Wrap( -1 );
-	fgSizer3->Add( m_staticText1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	fgSizer12->Add( m_staticText1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 	
 	wxString m_categoryChoiceChoices[] = { wxT("Ages/Eras"), wxT("Battles"), wxT("Ages") };
 	int m_categoryChoiceNChoices = sizeof( m_categoryChoiceChoices ) / sizeof( wxString );
-	m_categoryChoice = new wxChoice( m_panel2, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_categoryChoiceNChoices, m_categoryChoiceChoices, 0 );
+	m_categoryChoice = new wxChoice( m_panel10, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_categoryChoiceNChoices, m_categoryChoiceChoices, 0 );
 	m_categoryChoice->SetSelection( 0 );
-	fgSizer3->Add( m_categoryChoice, 0, wxALL, 5 );
+	fgSizer12->Add( m_categoryChoice, 0, wxALL, 5 );
 	
-	m_debugTextCtrl = new wxTextCtrl( m_panel2, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_READONLY );
-	fgSizer3->Add( m_debugTextCtrl, 0, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND, 5 );
+	m_debugTextCtrl = new wxTextCtrl( m_panel10, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_READONLY );
+	fgSizer12->Add( m_debugTextCtrl, 0, wxALL|wxEXPAND, 5 );
+	
+	
+	m_panel10->SetSizer( fgSizer12 );
+	m_panel10->Layout();
+	fgSizer12->Fit( m_panel10 );
+	fgSizer3->Add( m_panel10, 1, wxEXPAND | wxALL, 5 );
+	
+	m_panel11 = new wxPanel( m_panel2, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxFlexGridSizer* fgSizer13;
+	fgSizer13 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer13->SetFlexibleDirection( wxBOTH );
+	fgSizer13->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_bitmap = new wxStaticBitmap( m_panel11, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize( 200,200 ), 0 );
+	fgSizer13->Add( m_bitmap, 0, wxALL, 5 );
+	
+	
+	m_panel11->SetSizer( fgSizer13 );
+	m_panel11->Layout();
+	fgSizer13->Fit( m_panel11 );
+	fgSizer3->Add( m_panel11, 1, wxEXPAND | wxALL, 0 );
 	
 	
 	m_panel2->SetSizer( fgSizer3 );
@@ -204,6 +232,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	// Connect Events
 	this->Connect( wxEVT_IDLE, wxIdleEventHandler( MainForm::OnIdle ) );
 	this->Connect( wxEVT_KEY_DOWN, wxKeyEventHandler( MainForm::OnMainFormKeyDown ) );
+	m_bitmap->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnBitmapLeftDown ), NULL, this );
 	m_timelineZoomScrollBar->Connect( wxEVT_SCROLL_TOP, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );
 	m_timelineZoomScrollBar->Connect( wxEVT_SCROLL_BOTTOM, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );
 	m_timelineZoomScrollBar->Connect( wxEVT_SCROLL_LINEUP, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );
@@ -237,6 +266,7 @@ MainForm::~MainForm()
 	// Disconnect Events
 	this->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainForm::OnIdle ) );
 	this->Disconnect( wxEVT_KEY_DOWN, wxKeyEventHandler( MainForm::OnMainFormKeyDown ) );
+	m_bitmap->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnBitmapLeftDown ), NULL, this );
 	m_timelineZoomScrollBar->Disconnect( wxEVT_SCROLL_TOP, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );
 	m_timelineZoomScrollBar->Disconnect( wxEVT_SCROLL_BOTTOM, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );
 	m_timelineZoomScrollBar->Disconnect( wxEVT_SCROLL_LINEUP, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );
@@ -263,5 +293,76 @@ MainForm::~MainForm()
 	m_exitButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnExitButtonClick ), NULL, this );
 	this->Disconnect( MAIN_GUI_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnGuiTimer ) );
 	this->Disconnect( MAIN_RENDER_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnRenderTickTimer ) );
+	
+}
+
+ImageDialog::ImageDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	
+	wxFlexGridSizer* fgSizer14;
+	fgSizer14 = new wxFlexGridSizer( 0, 1, 0, 0 );
+	fgSizer14->AddGrowableCol( 0 );
+	fgSizer14->AddGrowableRow( 0 );
+	fgSizer14->SetFlexibleDirection( wxBOTH );
+	fgSizer14->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_topPanel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxFlexGridSizer* fgSizer15;
+	fgSizer15 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer15->AddGrowableCol( 0 );
+	fgSizer15->AddGrowableRow( 0 );
+	fgSizer15->SetFlexibleDirection( wxBOTH );
+	fgSizer15->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_imageBitmap = new wxStaticBitmap( m_topPanel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
+	fgSizer15->Add( m_imageBitmap, 0, wxALL|wxEXPAND, 5 );
+	
+	
+	m_topPanel->SetSizer( fgSizer15 );
+	m_topPanel->Layout();
+	fgSizer15->Fit( m_topPanel );
+	fgSizer14->Add( m_topPanel, 1, wxEXPAND | wxALL, 5 );
+	
+	m_bottomPanel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), wxTAB_TRAVERSAL );
+	wxFlexGridSizer* fgSizer16;
+	fgSizer16 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer16->AddGrowableCol( 0 );
+	fgSizer16->AddGrowableRow( 0 );
+	fgSizer16->SetFlexibleDirection( wxBOTH );
+	fgSizer16->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	
+	fgSizer16->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	ImageSdbSizer = new wxStdDialogButtonSizer();
+	ImageSdbSizerOK = new wxButton( m_bottomPanel, wxID_OK );
+	ImageSdbSizer->AddButton( ImageSdbSizerOK );
+	ImageSdbSizer->Realize();
+	
+	fgSizer16->Add( ImageSdbSizer, 1, 0, 5 );
+	
+	
+	m_bottomPanel->SetSizer( fgSizer16 );
+	m_bottomPanel->Layout();
+	fgSizer16->Fit( m_bottomPanel );
+	fgSizer14->Add( m_bottomPanel, 1, wxALL|wxEXPAND, 5 );
+	
+	
+	this->SetSizer( fgSizer14 );
+	this->Layout();
+	
+	this->Centre( wxBOTH );
+	
+	// Connect Events
+	this->Connect( wxEVT_SIZE, wxSizeEventHandler( ImageDialog::OnImageDialogSize ) );
+	ImageSdbSizerOK->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ImageDialog::OnImageSdbSizerOKButtonClick ), NULL, this );
+}
+
+ImageDialog::~ImageDialog()
+{
+	// Disconnect Events
+	this->Disconnect( wxEVT_SIZE, wxSizeEventHandler( ImageDialog::OnImageDialogSize ) );
+	ImageSdbSizerOK->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ImageDialog::OnImageSdbSizerOKButtonClick ), NULL, this );
 	
 }

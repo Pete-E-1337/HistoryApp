@@ -84,24 +84,57 @@ bool HistoryApp::OnInit()
 		//eventData.name				= "Jesus of Nazareth ";
 		//m_appData.eventList.push_back(eventData);
 
-		AddEventTimelineEventData(0, 30.0, "Jesus of Nazareth");				// 1
-		AddEventTimelineEventData(1939.0, 1945.0, "World War II");			// 2
-		AddEventTimelineEventData(-4540000000.0, 2026.0, "Earth");			// 3
-		AddEventTimelineEventData(-2500000.0, -3300.0, "Stone Age");		// 4
-		AddEventTimelineEventData(-3300.0, -1200.0, "Bronze Age");			// 5
-		AddEventTimelineEventData(-1200.0, -500.0, "Iron Age");				// 6
-		AddEventTimelineEventData(-500.0, 500.0, "Classical Era");			// 7
-		AddEventTimelineEventData(500.0, 1500.0, "Middle Ages");				// 8
-		AddEventTimelineEventData(1500.0, 1800.0, "Early Modern Era");		// 9
-		AddEventTimelineEventData(1800.0, 2026.0, "Modern Era");				// 10
-		AddEventTimelineEventData(-550.0, -330.0, "Achaemenid Empire");	// 11
-		AddEventTimelineEventData(-27.0, 476.0, "Roman Empire");				// 12
-		AddEventTimelineEventData(1206.0, 1368.0, "Mongol Empire");			// 13
-		AddEventTimelineEventData(1299.0, 1922.0, "Ottoman Empire");		// 14
-		AddEventTimelineEventData(1583.0, 1997.0, "British Empire");		// 15
-		AddEventTimelineEventData(-3000.0, -30.0, "Ancient Egypt");			// 16
+		AddEventTimelineEventData(0,					30.0,		"Jesus of Nazareth",	"");
+		AddEventTimelineEventData(1939.0,			1945.0,	"World War II",		"");
+		//AddEventTimelineEventData(-4540000000.0,	2026.0,	"Earth",					"");
+		//AddEventTimelineEventData(-2500000.0,		-3300.0,	"Stone Age",			"");
+		AddEventTimelineEventData(-3300.0,			-1200.0,	"Bronze Age",			"");
+		AddEventTimelineEventData(-1200.0,			-500.0,	"Iron Age",				"");
+		AddEventTimelineEventData(-500.0,			500.0,	"Classical Era",		"");
+		AddEventTimelineEventData(500.0,				1500.0,	"Middle Ages",			"");
+		AddEventTimelineEventData(362.0,				406.0,	"",						"Data/Images/362AD.jpg");
+		AddEventTimelineEventData(406.0,				420.0,	"",						"Data/Images/406AD.jpg");
+		AddEventTimelineEventData(420.0,				451.0,	"",						"Data/Images/420AD.jpg");
+		AddEventTimelineEventData(451.0,				476.0,	"",						"Data/Images/451AD.jpg");
+		AddEventTimelineEventData(476.0,				528.0,	"",						"Data/Images/476AD.jpg");
+		AddEventTimelineEventData(528.0,				565.0,	"",						"Data/Images/528AD.jpg");
+		AddEventTimelineEventData(565.0,				600.0,	"",						"Data/Images/565AD.jpg");
+		AddEventTimelineEventData(600.0,				626.0,	"",						"Data/Images/600AD.jpg");
+		AddEventTimelineEventData(626.0,				651.0,	"",						"Data/Images/626AD.jpg");
+		AddEventTimelineEventData(651.0,				737.0,	"",						"Data/Images/651AD.jpg");
+		AddEventTimelineEventData(737.0,				771.0,	"",						"Data/Images/737AD.jpg");
+		AddEventTimelineEventData(771.0,				830.0,	"",						"Data/Images/771AD.jpg");
+		AddEventTimelineEventData(830.0,				888.0,	"",						"Data/Images/830AD.jpg");
+		AddEventTimelineEventData(888.0,				925.0,	"",						"Data/Images/888AD.jpg");
+		AddEventTimelineEventData(925.0,				1000.0,	"",						"Data/Images/925AD.jpg");
+		AddEventTimelineEventData(1000.0,			1030.0,	"",						"Data/Images/1000AD.jpg");
+		AddEventTimelineEventData(1030.0,			1071.0,	"",						"Data/Images/1030AD.jpg");
+		AddEventTimelineEventData(1071.0,			1092.0,	"",						"Data/Images/1071AD.jpg");
+		AddEventTimelineEventData(1092.0,			1100.0,	"",						"Data/Images/1092AD.jpg");
+		AddEventTimelineEventData(1100.0,			1130.0,	"",						"Data/Images/1100AD.jpg");
+		AddEventTimelineEventData(1130.0,			1173.0,	"",						"Data/Images/1130AD.jpg");
+		AddEventTimelineEventData(1173.0,			1212.0,	"",						"Data/Images/1173AD.jpg");
+		AddEventTimelineEventData(1212.0,			1230.0,	"",						"Data/Images/1212AD.jpg");
+		AddEventTimelineEventData(1230.0,			1278.0,	"",						"Data/Images/1230AD.jpg");
+		AddEventTimelineEventData(1278.0,			1346.0,	"",						"Data/Images/1278AD.jpg");
+		AddEventTimelineEventData(1346.0,			1361.0,	"",						"Data/Images/1346AD.jpg");
+		AddEventTimelineEventData(1361.0,			1401.0,	"",						"Data/Images/1361AD.jpg");
+		AddEventTimelineEventData(1401.0,			1430.0,	"",						"Data/Images/1401AD.jpg");
+		AddEventTimelineEventData(1430.0,			1483.0,	"",						"Data/Images/1430AD.jpg");
+		AddEventTimelineEventData(1483.0,			1500.0,	"",						"Data/Images/1483AD.jpg");
+		AddEventTimelineEventData(1500.0,			1800.0,	"Early Modern Era",	"");
+		AddEventTimelineEventData(1800.0,			2026.0,	"Modern Era",			"");
+		AddEventTimelineEventData(-550.0,			-330.0,	"Achaemenid Empire",	"");
+		AddEventTimelineEventData(-27.0,				476.0,	"Roman Empire",		"");
+		AddEventTimelineEventData(1206.0,			1368.0,	"Mongol Empire",		"");
+		AddEventTimelineEventData(1299.0,			1922.0,	"Ottoman Empire",		"");
+		AddEventTimelineEventData(1583.0,			1997.0,	"British Empire",		"");
+		AddEventTimelineEventData(-3000.0,			-30.0,	"Ancient Egypt",		"");
 
 		std::sort(m_appData.eventList.begin(), m_appData.eventList.end(),
+					 [](const TimelineEventData& a, const TimelineEventData& b) { return a.startDate < b.startDate; });
+
+		std::sort(m_appData.imageList.begin(), m_appData.imageList.end(),
 					 [](const TimelineEventData& a, const TimelineEventData& b) { return a.startDate < b.startDate; });
 
 		FindNewestDate();
@@ -145,15 +178,24 @@ bool HistoryApp::EnsureSingleInstance()
    return (true);
 }
 
-void HistoryApp::AddEventTimelineEventData(double startDate, double endDate, const std::string& name)
+void HistoryApp::AddEventTimelineEventData(double startDate, double endDate, const std::string& name, const std::string& imageFilename)
 {
 	TimelineEventData eventData;
 		
 	eventData.startDate		= startDate;
 	eventData.endDate			= endDate;
 	eventData.name				= name;
+	eventData.imageFilename	= imageFilename;
 
-	m_appData.eventList.push_back(eventData);
+	if (name.empty() == false)
+	{
+		m_appData.eventList.push_back(eventData);
+	}
+
+	if (imageFilename.empty() == false)
+	{
+		m_appData.imageList.push_back(eventData);
+	}
 }
 
 void HistoryApp::FindNewestDate()

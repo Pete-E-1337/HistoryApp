@@ -37,7 +37,7 @@ public:
 private:
    void StoreExeName();
    bool EnsureSingleInstance();
-	void AddEventTimelineEventData(double startDate, double endDate, const std::string& name);
+	void AddEventTimelineEventData(double startDate, double endDate, const std::string& name, const std::string& imageFilename);
 	void FindNewestDate();
 
 private:

@@ -10,6 +10,7 @@ typedef struct TimelineEventData
 	double			startDate;
 	double			endDate;
 	std::string		name;
+	std::string		imageFilename;
 } TimelineEventData;
 
 typedef std::vector<TimelineEventData>		TimeLineEventList;
@@ -31,6 +32,7 @@ public:
 	//bool							freezeSimulation		= false;
 	//bool							reset						= false;
 	TimeLineEventList		eventList;
+	TimeLineEventList		imageList;
 	double					newestDate;
 	
 };

@@ -71,7 +71,7 @@ svs_src("Source Files\\Gui\\"
 #        Source/Gui/GuiUtils
 		Source/Gui/MainForm
 		Source/Gui/TimelineGLCanvas
-#		Source/Gui/SerialSettingsDialog
+		Source/Gui/ImageDialog
 	)
 	
 svs_src("Source Files\\Gui\\GeneratedFiles\\"
@@ -91,19 +91,22 @@ svs_src("Source Files\\Gui\\GeneratedFiles\\"
 svs_auto_lib_src(
 		Compiler/Breakpoint.h
 		Compiler/Warnings.h
-		Devices/SerialPort/AsyncSerial
-		Devices/SerialPort/CallbackAsyncSerial
+#		Devices/SerialPort/AsyncSerial
+#		Devices/SerialPort/CallbackAsyncSerial
 		Execution/BoostIoService
 		Execution/FileLogger
 		Execution/Mutex.h
 		Execution/MutexBoost.cpp
+		Execution/Thread
 		GUI/OpenGLHelper
 		GUI/OpenGLFont
 		GUI/Font
+		FileIO/AsyncFileLoader
 		Logger/Log
 		Math/MiscMath
-		Memory/CircularBuffer
-		Spatial/Angle
+#		Memory/CircularBuffer
+		Memory/MemoryPool
+#		Spatial/Angle
 		Spatial/Vector3D
 		Structures/DrawingPrimitives
 		Structures/Colors
