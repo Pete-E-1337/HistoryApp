@@ -114,12 +114,13 @@ namespace History
 			
 			// Virtual event handlers, overide them in your derived class
 			virtual void OnImageDialogSize( wxSizeEvent& event ) { event.Skip(); }
+			virtual void OnImageBitmapSize( wxSizeEvent& event ) { event.Skip(); }
 			virtual void OnImageSdbSizerOKButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			
 		
 		public:
 			
-			ImageDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 813,679 ), long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER ); 
+			ImageDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 813,679 ), long style = wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxRESIZE_BORDER ); 
 			~ImageDialog();
 		
 	};

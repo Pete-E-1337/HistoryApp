@@ -14,7 +14,14 @@ SVS_WARNING_DISABLE(4189) // local variable is initialized but not referenced
 ImageDialog::ImageDialog(wxWindow* parent) :
 	History::ImageDialog(parent)
 {
-	m_bottomPanelHeight = m_bottomPanel->GetSize().GetHeight();
+	int w, h;
+	int dialogW, dialogH;
+
+	m_imageBitmap->GetSize(&w, &h);
+	GetSize(&dialogW, &dialogH);
+
+	m_dialogToBitmapWidthDiff	= dialogW - w;	// 36
+	m_dialogToBitmapHeightDiff	= dialogH - h;	// 95
 }
 
 ImageDialog::~ImageDialog()
@@ -26,10 +33,32 @@ bool ImageDialog::ShowModalDialogue()
    CentreOnParent();
 
 	int w, h;
+	int dialogW, dialogH;
+
+	GetSize(&dialogW, &dialogH);
+
+	w = dialogW - m_dialogToBitmapWidthDiff;
+	h = dialogH - m_dialogToBitmapHeightDiff;
 
 	wxBitmap bitmap(m_imageFilename, wxBITMAP_TYPE_JPEG);
 	m_image = bitmap.ConvertToImage();
-	m_imageBitmap->GetSize(&w, &h);
+	//m_imageBitmap->GetSize(&w, &h);
+
+	// maintain aspect ratio
+	{
+		double imgRatio = (double)m_image.GetWidth() / m_image.GetHeight();
+		double targetRatio = (double)w / h;
+
+		if (targetRatio > imgRatio)
+		{
+			w = std::lround(h * imgRatio);
+		}
+		else
+		{
+			h = std::lround(w / imgRatio);
+		}
+	}
+
 	wxImage shrunkImg = m_image.Scale(w, h, wxIMAGE_QUALITY_HIGH);
 	m_imageBitmap->SetBitmap(shrunkImg);
 	m_imageBitmap->Refresh();
@@ -61,35 +90,46 @@ void ImageDialog::OnImageSdbSizerOKButtonClick(wxCommandEvent& event)
 
 void ImageDialog::OnImageDialogSize(wxSizeEvent& event)
 {
-	if (!m_imageBitmap || !m_image.IsOk())
+	if ((m_imageBitmap == nullptr) || (m_image.IsOk() == false))
+	{
 		return;
-    
+	}
+
 	int w, h;
+	int dialogW, dialogH;
 
-	m_imageBitmap->GetSize(&w, &h);
+	GetSize(&dialogW, &dialogH);
 
-//int h1 = m_topPanel->GetSize().GetHeight();
-//int h2 = m_imageBitmap->GetSize().GetHeight();
-//int h3 = m_imageBitmap->GetClientSize().GetHeight();
-//
-//int h4 = m_bottomPanel->GetSize().GetHeight();
-//int h5 = m_bottomPanel->GetSize().GetY();
-
-//int bottomPanelWidth, bottomPanelHeight;
-//wxSize size = event.GetSize();
-//m_bottomPanel->GetSize(&bottomPanelWidth, &bottomPanelHeight);
-//w = size.GetWidth();
-//h = size.GetHeight() - 200;
-
-	h = h - m_bottomPanelHeight; // For some unknown reason it doesn't keep the "ok" button visible. Add this code to compensate :/
+	w = dialogW - m_dialogToBitmapWidthDiff;
+	h = dialogH - m_dialogToBitmapHeightDiff;
 
 	if (h > 0)
 	{
+		// maintain aspect ratio
+		{
+			double imgRatio = (double)m_image.GetWidth() / m_image.GetHeight();
+			double targetRatio = (double)w / h;
+
+			if (targetRatio > imgRatio)
+			{
+				w = std::lround(h * imgRatio);
+			}
+			else
+			{
+				h = std::lround(w / imgRatio);
+			}
+		}
+
 		wxImage shrunkImg = m_image.Scale(w, h, wxIMAGE_QUALITY_HIGH);
 		m_imageBitmap->SetBitmap(shrunkImg);
-		m_imageBitmap->Refresh();
+		//m_imageBitmap->Refresh();
+		m_topPanel->Refresh();
 	}
 
 	event.Skip(); // Call default size behavior for sizers
 }
     
+void ImageDialog::OnImageBitmapSize(wxSizeEvent& event)
+{
+	event.Skip(); // Call default size behavior for sizers
+}

@@ -358,6 +358,7 @@ ImageDialog::ImageDialog( wxWindow* parent, wxWindowID id, const wxString& title
 	
 	// Connect Events
 	this->Connect( wxEVT_SIZE, wxSizeEventHandler( ImageDialog::OnImageDialogSize ) );
+	m_imageBitmap->Connect( wxEVT_SIZE, wxSizeEventHandler( ImageDialog::OnImageBitmapSize ), NULL, this );
 	ImageSdbSizerOK->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ImageDialog::OnImageSdbSizerOKButtonClick ), NULL, this );
 }
 
@@ -365,6 +366,7 @@ ImageDialog::~ImageDialog()
 {
 	// Disconnect Events
 	this->Disconnect( wxEVT_SIZE, wxSizeEventHandler( ImageDialog::OnImageDialogSize ) );
+	m_imageBitmap->Disconnect( wxEVT_SIZE, wxSizeEventHandler( ImageDialog::OnImageBitmapSize ), NULL, this );
 	ImageSdbSizerOK->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ImageDialog::OnImageSdbSizerOKButtonClick ), NULL, this );
 	
 }

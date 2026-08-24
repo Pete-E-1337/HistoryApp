@@ -19,6 +19,7 @@ protected:
 	//virtual void OnBaudRateChoice(wxCommandEvent& event) override;
 	virtual void OnImageSdbSizerOKButtonClick(wxCommandEvent& event) override;
 	virtual void OnImageDialogSize(wxSizeEvent& event) override;
+	virtual void OnImageBitmapSize(wxSizeEvent& event) override;
 
 private:
    bool IsAffirmativeResult(int32_t dialogueResult);
@@ -26,7 +27,11 @@ private:
 private:
 	std::string	m_imageFilename;
 	wxImage		m_image;
-	int			m_bottomPanelHeight;		// required to deal with a GUI bug of the panel disappearing during resizing :/
+//	int			m_bottomPanelHeight;		// required to deal with a GUI bug of the panel disappearing during resizing :/
+
+	// Use these to resize the bitmap. Using the bitmap size itself proved buggy.
+	int			m_dialogToBitmapWidthDiff;
+	int			m_dialogToBitmapHeightDiff;
 };
 
 #endif // IMAGE_DIALOG_H

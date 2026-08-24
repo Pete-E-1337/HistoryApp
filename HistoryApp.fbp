@@ -2215,7 +2215,7 @@
             <property name="name">ImageDialog</property>
             <property name="pos"></property>
             <property name="size">813,679</property>
-            <property name="style">wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</property>
+            <property name="style">wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxRESIZE_BORDER</property>
             <property name="subclass"></property>
             <property name="title"></property>
             <property name="tooltip"></property>
@@ -2437,7 +2437,7 @@
                                     <event name="OnRightDown"></event>
                                     <event name="OnRightUp"></event>
                                     <event name="OnSetFocus"></event>
-                                    <event name="OnSize"></event>
+                                    <event name="OnSize">OnImageBitmapSize</event>
                                     <event name="OnUpdateUI"></event>
                                 </object>
                             </object>
