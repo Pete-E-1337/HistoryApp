@@ -14,14 +14,17 @@ SVS_WARNING_DISABLE(4189) // local variable is initialized but not referenced
 ImageDialog::ImageDialog(wxWindow* parent) :
 	History::ImageDialog(parent)
 {
-	int w, h;
-	int dialogW, dialogH;
+	// Set dialog to bitmap size differences
+	{
+		int w, h;
+		int dialogW, dialogH;
 
-	m_imageBitmap->GetSize(&w, &h);
-	GetSize(&dialogW, &dialogH);
+		m_imageBitmap->GetSize(&w, &h);
+		GetSize(&dialogW, &dialogH);
 
-	m_dialogToBitmapWidthDiff	= dialogW - w;	// 36
-	m_dialogToBitmapHeightDiff	= dialogH - h;	// 95
+		m_dialogToBitmapWidthDiff	= dialogW - w;	// 36
+		m_dialogToBitmapHeightDiff	= dialogH - h;	// 95
+	}
 }
 
 ImageDialog::~ImageDialog()
@@ -41,27 +44,31 @@ bool ImageDialog::ShowModalDialogue()
 	h = dialogH - m_dialogToBitmapHeightDiff;
 
 	wxBitmap bitmap(m_imageFilename, wxBITMAP_TYPE_JPEG);
-	m_image = bitmap.ConvertToImage();
-	//m_imageBitmap->GetSize(&w, &h);
 
-	// maintain aspect ratio
+	if (bitmap.IsOk() == true)
 	{
-		double imgRatio = (double)m_image.GetWidth() / m_image.GetHeight();
-		double targetRatio = (double)w / h;
+		m_image = bitmap.ConvertToImage();
+		//m_imageBitmap->GetSize(&w, &h);
 
-		if (targetRatio > imgRatio)
+		// maintain aspect ratio
 		{
-			w = std::lround(h * imgRatio);
+			double imgRatio = (double)m_image.GetWidth() / m_image.GetHeight();
+			double targetRatio = (double)w / h;
+
+			if (targetRatio > imgRatio)
+			{
+				w = std::lround(h * imgRatio);
+			}
+			else
+			{
+				h = std::lround(w / imgRatio);
+			}
 		}
-		else
-		{
-			h = std::lround(w / imgRatio);
-		}
+
+		wxImage shrunkImg = m_image.Scale(w, h, wxIMAGE_QUALITY_HIGH);
+		m_imageBitmap->SetBitmap(shrunkImg);
+		m_imageBitmap->Refresh();
 	}
-
-	wxImage shrunkImg = m_image.Scale(w, h, wxIMAGE_QUALITY_HIGH);
-	m_imageBitmap->SetBitmap(shrunkImg);
-	m_imageBitmap->Refresh();
 
    return (IsAffirmativeResult(ShowModal()));
 }

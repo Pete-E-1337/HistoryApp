@@ -18,12 +18,18 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	wxFlexGridSizer* fgSizer1;
 	fgSizer1 = new wxFlexGridSizer( 0, 1, 0, 0 );
 	fgSizer1->AddGrowableCol( 0 );
-	fgSizer1->AddGrowableRow( 1 );
+	fgSizer1->AddGrowableRow( 0 );
 	fgSizer1->SetFlexibleDirection( wxBOTH );
 	fgSizer1->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
-	m_mainPanel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	m_mainPanel->SetBackgroundColour( wxColour( 208, 208, 208 ) );
+	m_mainSplitter = new wxSplitterWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_NO_XP_THEME );
+	m_mainSplitter->SetSashGravity( 0 );
+	
+	m_mainSplitter->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
+	m_mainSplitter->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
+	
+	m_topPanel = new wxPanel( m_mainSplitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_topPanel->SetBackgroundColour( wxColour( 208, 208, 208 ) );
 	
 	wxFlexGridSizer* fgSizer2;
 	fgSizer2 = new wxFlexGridSizer( 0, 1, 0, 0 );
@@ -32,17 +38,17 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	fgSizer2->SetFlexibleDirection( wxBOTH );
 	fgSizer2->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
-	m_panel2 = new wxPanel( m_mainPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel2 = new wxPanel( m_topPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxFlexGridSizer* fgSizer3;
 	fgSizer3 = new wxFlexGridSizer( 0, 2, 0, 0 );
-	fgSizer3->AddGrowableCol( 0 );
+	fgSizer3->AddGrowableCol( 1 );
+	fgSizer3->AddGrowableRow( 0 );
 	fgSizer3->SetFlexibleDirection( wxBOTH );
 	fgSizer3->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
 	m_panel10 = new wxPanel( m_panel2, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxFlexGridSizer* fgSizer12;
 	fgSizer12 = new wxFlexGridSizer( 0, 0, 0, 0 );
-	fgSizer12->AddGrowableCol( 2 );
 	fgSizer12->SetFlexibleDirection( wxBOTH );
 	fgSizer12->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
@@ -56,31 +62,32 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_categoryChoice->SetSelection( 0 );
 	fgSizer12->Add( m_categoryChoice, 0, wxALL, 5 );
 	
-	m_debugTextCtrl = new wxTextCtrl( m_panel10, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_READONLY );
-	fgSizer12->Add( m_debugTextCtrl, 0, wxALL|wxEXPAND, 5 );
-	
 	
 	m_panel10->SetSizer( fgSizer12 );
 	m_panel10->Layout();
 	fgSizer12->Fit( m_panel10 );
 	fgSizer3->Add( m_panel10, 1, wxEXPAND | wxALL, 5 );
 	
-	m_panel11 = new wxPanel( m_panel2, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	m_panel11->SetBackgroundColour( wxColour( 255, 255, 255 ) );
+	m_bitmapPanel = new wxPanel( m_panel2, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
+	m_bitmapPanel->SetBackgroundColour( wxColour( 208, 208, 208 ) );
 	
 	wxFlexGridSizer* fgSizer13;
-	fgSizer13 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer13 = new wxFlexGridSizer( 0, 1, 0, 0 );
+	fgSizer13->AddGrowableCol( 0 );
+	fgSizer13->AddGrowableRow( 0 );
 	fgSizer13->SetFlexibleDirection( wxBOTH );
 	fgSizer13->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
-	m_bitmap = new wxStaticBitmap( m_panel11, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize( 200,200 ), 0 );
-	fgSizer13->Add( m_bitmap, 0, wxALL, 5 );
+	m_bitmap = new wxStaticBitmap( m_bitmapPanel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize( -1,-1 ), 0 );
+	m_bitmap->SetBackgroundColour( wxColour( 208, 208, 208 ) );
+	
+	fgSizer13->Add( m_bitmap, 0, wxALL|wxEXPAND, 0 );
 	
 	
-	m_panel11->SetSizer( fgSizer13 );
-	m_panel11->Layout();
-	fgSizer13->Fit( m_panel11 );
-	fgSizer3->Add( m_panel11, 1, wxEXPAND|wxRIGHT|wxTOP, 5 );
+	m_bitmapPanel->SetSizer( fgSizer13 );
+	m_bitmapPanel->Layout();
+	fgSizer13->Fit( m_bitmapPanel );
+	fgSizer3->Add( m_bitmapPanel, 1, wxEXPAND|wxRIGHT|wxTOP, 5 );
 	
 	
 	m_panel2->SetSizer( fgSizer3 );
@@ -89,12 +96,20 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	fgSizer2->Add( m_panel2, 1, wxALL|wxEXPAND, 5 );
 	
 	
-	m_mainPanel->SetSizer( fgSizer2 );
-	m_mainPanel->Layout();
-	fgSizer2->Fit( m_mainPanel );
-	fgSizer1->Add( m_mainPanel, 1, wxALL|wxEXPAND, 0 );
+	m_topPanel->SetSizer( fgSizer2 );
+	m_topPanel->Layout();
+	fgSizer2->Fit( m_topPanel );
+	m_panel14 = new wxPanel( m_mainSplitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel14->SetBackgroundColour( wxColour( 208, 208, 208 ) );
 	
-	m_timelineBasePanel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxFlexGridSizer* fgSizer15;
+	fgSizer15 = new wxFlexGridSizer( 0, 1, 0, 0 );
+	fgSizer15->AddGrowableCol( 0 );
+	fgSizer15->AddGrowableRow( 0 );
+	fgSizer15->SetFlexibleDirection( wxBOTH );
+	fgSizer15->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_timelineBasePanel = new wxPanel( m_panel14, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_timelineBasePanel->SetBackgroundColour( wxColour( 208, 208, 208 ) );
 	
 	wxFlexGridSizer* fgSizer5;
@@ -140,9 +155,9 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_timelineBasePanel->SetSizer( fgSizer5 );
 	m_timelineBasePanel->Layout();
 	fgSizer5->Fit( m_timelineBasePanel );
-	fgSizer1->Add( m_timelineBasePanel, 1, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
+	fgSizer15->Add( m_timelineBasePanel, 1, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 	
-	m_panel6 = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel6 = new wxPanel( m_panel14, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxFlexGridSizer* fgSizer61;
 	fgSizer61 = new wxFlexGridSizer( 1, 0, 0, 0 );
 	fgSizer61->AddGrowableCol( 0 );
@@ -154,15 +169,17 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	fgSizer61->Add( m_timelineDateScrollBar, 0, wxALIGN_CENTER_VERTICAL|wxBOTTOM|wxEXPAND|wxLEFT|wxTOP, 5 );
 	
 	m_panel9 = new wxPanel( m_panel6, wxID_ANY, wxDefaultPosition, wxSize( 22,-1 ), wxTAB_TRAVERSAL );
+	m_panel9->SetBackgroundColour( wxColour( 208, 208, 208 ) );
+	
 	fgSizer61->Add( m_panel9, 1, wxEXPAND | wxALL, 5 );
 	
 	
 	m_panel6->SetSizer( fgSizer61 );
 	m_panel6->Layout();
 	fgSizer61->Fit( m_panel6 );
-	fgSizer1->Add( m_panel6, 1, wxEXPAND|wxLEFT, 5 );
+	fgSizer15->Add( m_panel6, 1, wxEXPAND|wxLEFT, 5 );
 	
-	m_panel7 = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel7 = new wxPanel( m_panel14, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_panel7->SetBackgroundColour( wxColour( 208, 208, 208 ) );
 	
 	wxFlexGridSizer* fgSizer6;
@@ -192,7 +209,14 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_panel7->SetSizer( fgSizer6 );
 	m_panel7->Layout();
 	fgSizer6->Fit( m_panel7 );
-	fgSizer1->Add( m_panel7, 1, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
+	fgSizer15->Add( m_panel7, 1, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
+	
+	
+	m_panel14->SetSizer( fgSizer15 );
+	m_panel14->Layout();
+	fgSizer15->Fit( m_panel14 );
+	m_mainSplitter->SplitHorizontally( m_topPanel, m_panel14, -1 );
+	fgSizer1->Add( m_mainSplitter, 1, wxEXPAND, 5 );
 	
 	m_bottomPanel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_bottomPanel->SetBackgroundColour( wxColour( 208, 208, 208 ) );
@@ -204,9 +228,8 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	fgSizer4->SetFlexibleDirection( wxBOTH );
 	fgSizer4->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
-	m_staticText2 = new wxStaticText( m_bottomPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText2->Wrap( -1 );
-	fgSizer4->Add( m_staticText2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	m_debugTextCtrl = new wxTextCtrl( m_bottomPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_READONLY );
+	fgSizer4->Add( m_debugTextCtrl, 0, wxALL|wxEXPAND, 5 );
 	
 	
 	fgSizer4->Add( 0, 0, 1, wxEXPAND, 5 );
@@ -234,6 +257,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	// Connect Events
 	this->Connect( wxEVT_IDLE, wxIdleEventHandler( MainForm::OnIdle ) );
 	this->Connect( wxEVT_KEY_DOWN, wxKeyEventHandler( MainForm::OnMainFormKeyDown ) );
+	m_mainSplitter->Connect( wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, wxSplitterEventHandler( MainForm::OnMainSplitterSplitterSashPosChanged ), NULL, this );
 	m_bitmap->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnBitmapLeftDown ), NULL, this );
 	m_timelineZoomScrollBar->Connect( wxEVT_SCROLL_TOP, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );
 	m_timelineZoomScrollBar->Connect( wxEVT_SCROLL_BOTTOM, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );
@@ -268,6 +292,7 @@ MainForm::~MainForm()
 	// Disconnect Events
 	this->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainForm::OnIdle ) );
 	this->Disconnect( wxEVT_KEY_DOWN, wxKeyEventHandler( MainForm::OnMainFormKeyDown ) );
+	m_mainSplitter->Disconnect( wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, wxSplitterEventHandler( MainForm::OnMainSplitterSplitterSashPosChanged ), NULL, this );
 	m_bitmap->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnBitmapLeftDown ), NULL, this );
 	m_timelineZoomScrollBar->Disconnect( wxEVT_SCROLL_TOP, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );
 	m_timelineZoomScrollBar->Disconnect( wxEVT_SCROLL_BOTTOM, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );

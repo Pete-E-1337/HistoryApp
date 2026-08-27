@@ -29,6 +29,7 @@ public:
 	virtual void OnDateSpinBtnSpinDown(wxSpinEvent& event) override;
 	virtual void OnDateSpinBtnSpinUp(wxSpinEvent& event) override;
 	virtual void OnBitmapLeftDown(wxMouseEvent& event) override;
+	virtual void OnMainSplitterSplitterSashPosChanged(wxSplitterEvent& event) override;
 
 private:
    void Initialise();
@@ -54,6 +55,7 @@ private:
 // SVS::Mutex						m_graphVectorsLock;
 //	FILE*								m_report = nullptr;
 	TimelineGLCanvas*				m_timelineCanvas			= nullptr;
+	bool								m_firstTimeShown			= true;
 	bool								m_updating_date_text		= true;
 	bool								m_image_requires_update	= true;
 	double							m_old_date					= std::numeric_limits<double>::lowest();

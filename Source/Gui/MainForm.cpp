@@ -2,6 +2,7 @@
 
 #include <wx/msgdlg.h>
 #include <wx/spinctrl.h>
+#include <wx/display.h>
 #include <windows.h>
 #include <fstream>
 #include <sstream>
@@ -14,7 +15,8 @@
 //#include "../PID.h"
 
 SVS_WARNING_DISABLE(4189) // local variable is initialized but not referenced
-								  
+//SVS_WARNING_DISABLE(4702) // unreachable code
+
 //#define ENABLE_DEBUGGING_GUI
 
 #ifdef _DEBUG
@@ -27,10 +29,11 @@ SVS_WARNING_DISABLE(4189) // local variable is initialized but not referenced
 
 SVS_WARNING_DISABLE(4100) // Unreferenced formal parameter in boost
 
-const char*			l_settingsFilename				= "settings.txt";
-static const int	l_guiTimerInterval				= 300;
-static const int	l_renderTimerInterval			= 40;
-static const int	l_imageUpdateThreadInterval	= 300;
+const char*				l_settingsFilename				= "settings.txt";
+static const int		l_guiTimerInterval				= 300;
+static const int		l_renderTimerInterval			= 40;
+static const int		l_imageUpdateThreadInterval	= 300;
+static const double	l_timelineSplitterProportion	= 0.6;
 
 MainForm::MainForm(wxWindow* parent, AppData* appData) :
 	History::MainForm(parent),
@@ -122,15 +125,29 @@ void MainForm::Initialise()
 	m_timelineZoomScrollBar->SetScrollbar(1, 1, 10000, 10, true);
 	SetTimelineDateScrollBarPositionFromDate(0.0);
 
+	// Set the application to be (windowed) full screen and centred
+	{
+		wxDisplay currentDisplay(wxDisplay::GetFromWindow(this));
+		wxRect clientRect = currentDisplay.GetClientArea();
+		int availableWidth  = clientRect.GetWidth();
+		int availableHeight = clientRect.GetHeight();
+
+		this->SetSize(availableWidth, availableHeight);
+		this->Centre();
+
+		m_imageDialog->SetSize(availableWidth, availableHeight);
+		m_imageDialog->Centre();
+	}
+
 	SetAppData(m_appData);
 
 	m_guiTimer.Start(l_guiTimerInterval);
 	m_renderTickTimer.Start(l_renderTimerInterval);
 
+	m_image_requires_update = true;
+
 	m_runImageUpdateThread = true;
 	m_imageUpdateThread = new boost::thread(boost::bind(&MainForm::ImageUpdateThread, this));
-
-	m_image_requires_update = true;
 }
 
 void MainForm::LoadSettings()
@@ -213,8 +230,8 @@ void MainForm::OnDateTextCtrlTextEnter(wxCommandEvent& event)
 
 	m_timelineCanvas->SetDate(date);
 	m_timelineCanvas->SetFocus();
-	m_updating_date_text = true;
-	m_image_requires_update = true;
+	m_updating_date_text		= true;
+	m_image_requires_update	= true;
 
 	event.Skip();
 }
@@ -228,13 +245,14 @@ void MainForm::OnDateTextCtrlLeftDown(wxMouseEvent& event)
 
 void MainForm::OnIdle(wxIdleEvent& event)
 {
-	//if (m_timelineCanvas != nullptr)
-	//{
-	//	m_debugTextCtrl->SetValue(m_timelineCanvas->GetDebugString());
+	if (m_firstTimeShown == true)
+	{
+		// Set the splitter position. NB. Couldn't be done during initialization :/
+		int pos = l_timelineSplitterProportion * (double)this->GetSize().GetHeight();
+		m_mainSplitter->SetSashPosition(pos, true);
 
-	//	UpdateDateText();
-	//	UpdateImage();
-	//}
+		m_firstTimeShown = false;
+	}
 
 	event.Skip();
 }
@@ -258,10 +276,8 @@ void MainForm::UpdateImage()
 	{
 		double date = m_timelineCanvas->GetDate();
 
-		if (SVS::Math::InRange(m_old_date, date - 0.01, date + 0.01) == false)
+//		if (SVS::Math::InRange(m_old_date, date - 0.01, date + 0.01) == false)
 		{
-			m_old_date = date;
-
 			bool image_found = false;
 
 			for (TimeLineEventListConstIter iter = m_appData->imageList.begin(); iter != m_appData->imageList.end(); iter++)
@@ -273,11 +289,44 @@ void MainForm::UpdateImage()
 						int w, h;
 
 						wxBitmap bitmap(iter->imageFilename, wxBITMAP_TYPE_JPEG);
+
+						if (bitmap.IsOk() == false)
+						{
+//							std::string msg = "Could not load file:  \"" + iter->imageFilename + "\"";
+//							wxMessageDialog(this, msg.c_str(), "Error", wxOK | wxICON_ERROR);
+//							wxMessageBox(msg.c_str(), "Error", wxOK | wxSTAY_ON_TOP);
+							image_found = false;
+							break;
+						}
+
 						wxImage img = bitmap.ConvertToImage();
-						m_bitmap->GetSize(&w, &h);
+//						m_bitmap->GetSize(&w, &h);
+						m_bitmapPanel->GetSize(&w, &h);
+
+						if ((w == 0) || (h == 0))
+							return;
+//							break;
+
+						// maintain aspect ratio
+						{
+							double imgRatio = (double)img.GetWidth() / img.GetHeight();
+							double targetRatio = (double)w / h;
+
+							if (targetRatio > imgRatio)
+							{
+								w = std::lround(h * imgRatio);
+							}
+							else
+							{
+								h = std::lround(w / imgRatio);
+							}
+						}
+
 						wxImage shrunkImg = img.Scale(w, h, wxIMAGE_QUALITY_HIGH);
 						m_bitmap->SetBitmap(shrunkImg);
-						m_bitmap->Refresh();
+//						m_bitmap->Refresh();
+//						m_bitmapPanel->Refresh();
+						m_bitmapPanel->Layout();
 
 						if (m_imageDialog != nullptr)
 						{
@@ -294,17 +343,28 @@ void MainForm::UpdateImage()
 			{
 				// Clear the bitmap
 				m_bitmap->SetBitmap(wxNullBitmap);
-				m_bitmap->Refresh();
+//				m_bitmap->Refresh();
+//				m_bitmapPanel->Refresh();
+				m_bitmapPanel->Layout();
 
 				if (m_imageDialog != nullptr)
 				{
 					m_imageDialog->SetImageFilename("");
 				}
 			}
+
+			m_old_date = date;
 		}
 
 		m_image_requires_update = false;
 	}
+}
+
+void MainForm::OnMainSplitterSplitterSashPosChanged(wxSplitterEvent& event)
+{
+	m_image_requires_update = true;
+
+	event.Skip();
 }
 
 void MainForm::OnTimelineDateScrollBarScroll(wxScrollEvent& event)

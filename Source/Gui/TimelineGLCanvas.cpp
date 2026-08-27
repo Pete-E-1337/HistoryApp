@@ -50,6 +50,7 @@ const int		l_font_height										= 33;
 const float		l_timeline_y_event_font_scale					= 0.03f / (float)l_font_height; // 0.003 when font height is 10
 //const float		l_timeline_y_date_axis_font_scale			= 0.0025f;
 const float		l_timeline_y_date_axis_font_scale			= 0.83f * l_timeline_y_event_font_scale; // 0.0025 when font height is 10
+const double	l_datesAxisMultiplier							= 8.0;	// How many times bigger to label the dates axis
 const float		l_timeline_y_event_text_height				= 0.0417f;
 const float		l_timeline_y_gap_event							= 0.05f;
 const float		l_timeline_y_gap_date_axis						= 0.007f;
@@ -457,8 +458,8 @@ void TimelineGLCanvas::DrawTimelineEventDataList()
 void TimelineGLCanvas::DrawTimelineBackground(float font_scale, float events_start_y, float events_end_y)
 {
 	float		date_axis_y	= events_end_y - (l_timeline_y_gap_date_axis * m_cameraMatrix.GetPositionZ());
-	double	x1				= m_cameraMatrix.GetPositionX() - m_cameraMatrix.GetPositionZ() * 1.5;
-	double	x2				= m_cameraMatrix.GetPositionX() + m_cameraMatrix.GetPositionZ() * 1.5;
+	double	x1				= m_cameraMatrix.GetPositionX() - m_cameraMatrix.GetPositionZ() * l_datesAxisMultiplier;
+	double	x2				= m_cameraMatrix.GetPositionX() + m_cameraMatrix.GetPositionZ() * l_datesAxisMultiplier;
 
 	//// debug draw timeline start and end lines
 	//{

@@ -17,7 +17,6 @@
 #include <wx/colour.h>
 #include <wx/settings.h>
 #include <wx/choice.h>
-#include <wx/textctrl.h>
 #include <wx/sizer.h>
 #include <wx/panel.h>
 #include <wx/bitmap.h>
@@ -25,8 +24,10 @@
 #include <wx/icon.h>
 #include <wx/statbmp.h>
 #include <wx/scrolbar.h>
+#include <wx/textctrl.h>
 #include <wx/valtext.h>
 #include <wx/spinbutt.h>
+#include <wx/splitter.h>
 #include <wx/button.h>
 #include <wx/timer.h>
 #include <wx/menu.h>
@@ -48,14 +49,15 @@ namespace History
 		private:
 		
 		protected:
-			wxPanel* m_mainPanel;
+			wxSplitterWindow* m_mainSplitter;
+			wxPanel* m_topPanel;
 			wxPanel* m_panel2;
 			wxPanel* m_panel10;
 			wxStaticText* m_staticText1;
 			wxChoice* m_categoryChoice;
-			wxTextCtrl* m_debugTextCtrl;
-			wxPanel* m_panel11;
+			wxPanel* m_bitmapPanel;
 			wxStaticBitmap* m_bitmap;
+			wxPanel* m_panel14;
 			wxPanel* m_timelineBasePanel;
 			wxPanel* m_timelinePanel;
 			wxPanel* m_panel8;
@@ -68,7 +70,7 @@ namespace History
 			wxTextCtrl* m_dateTextCtrl;
 			wxSpinButton* m_dateSpinBtn;
 			wxPanel* m_bottomPanel;
-			wxStaticText* m_staticText2;
+			wxTextCtrl* m_debugTextCtrl;
 			wxButton* m_exitButton;
 			wxTimer m_guiTimer;
 			wxTimer m_renderTickTimer;
@@ -77,6 +79,7 @@ namespace History
 			// Virtual event handlers, overide them in your derived class
 			virtual void OnIdle( wxIdleEvent& event ) { event.Skip(); }
 			virtual void OnMainFormKeyDown( wxKeyEvent& event ) { event.Skip(); }
+			virtual void OnMainSplitterSplitterSashPosChanged( wxSplitterEvent& event ) { event.Skip(); }
 			virtual void OnBitmapLeftDown( wxMouseEvent& event ) { event.Skip(); }
 			virtual void OnTimelineZoomScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }
 			virtual void OnTimelineDateScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }
