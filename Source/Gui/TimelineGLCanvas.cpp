@@ -19,7 +19,7 @@
 #include <GL/glu.h>
 #endif
 
-//#define DRAW_DEBUG_AXIS
+#define DRAW_DEBUG_AXIS
 //#define DISPLAY_COMMON_ERA
 
 SVS_WARNING_DISABLE(4100) // Unreferenced formal parameter
@@ -30,6 +30,7 @@ EVT_SIZE(TimelineGLCanvas::OnSize)
 EVT_PAINT(TimelineGLCanvas::OnPaint)
 EVT_ERASE_BACKGROUND(TimelineGLCanvas::OnEraseBackground)
 //EVT_MOUSE_EVENTS(TimelineGLCanvas::OnMouse)
+EVT_LEFT_DOWN(TimelineGLCanvas::OnLeftDown)
 EVT_KEY_DOWN(TimelineGLCanvas::OnKeyDown)
 EVT_KEY_UP(TimelineGLCanvas::OnKeyUp)
 //EVT_JOYSTICK_EVENTS(TimelineGLCanvas::OnJoystickEvent)
@@ -51,6 +52,7 @@ const float		l_timeline_y_event_font_scale					= 0.03f / (float)l_font_height; /
 //const float		l_timeline_y_date_axis_font_scale			= 0.0025f;
 const float		l_timeline_y_date_axis_font_scale			= 0.83f * l_timeline_y_event_font_scale; // 0.0025 when font height is 10
 const double	l_datesAxisMultiplier							= 8.0;	// How many times bigger to label the dates axis
+const float		l_timeline_y_selection							= 0.0083f;
 const float		l_timeline_y_event_text_height				= 0.0417f;
 const float		l_timeline_y_gap_event							= 0.05f;
 const float		l_timeline_y_gap_date_axis						= 0.007f;
@@ -146,6 +148,8 @@ TimelineGLCanvas::TimelineGLCanvas(wxWindow *parent,
 	//m_cameraMatrix.Translate(l_worldTranslation.x, l_worldTranslation.y, l_worldTranslation.z);
 //SVS::Vector3Dd position = m_cameraMatrix.GetPosition();
 //BREAK_HERE();
+
+//	m_selectedIter =  m_appData->eventList.end();
 }
 
 TimelineGLCanvas::~TimelineGLCanvas()
@@ -264,7 +268,7 @@ void TimelineGLCanvas::ResetProjectionMode()
 	GetSize(&w, &h);
 //h += 200;
 
-	// It's up to the application code to update the OpenGL viewport settings.
+	// It's up to the application code to update the OpenGL m_viewport settings.
 	// In order to avoid extensive context switching, consider doing this in
 	// OnPaint() rather than here, though.
 	glViewport(0, 0, (GLint)w, (GLint)h);
@@ -283,6 +287,10 @@ void TimelineGLCanvas::ResetProjectionMode()
 	//	gluOrtho2D(0.0, (double)w, 0.0, (double)h); // (Left, Right, Bottom, Top)
 	//	glMatrixMode(GL_MODELVIEW);
 	//}
+
+	//glGetIntegerv(GL_VIEWPORT, m_viewport);
+	//glGetDoublev(GL_MODELVIEW_MATRIX, m_modelview);
+	//glGetDoublev(GL_PROJECTION_MATRIX, m_projection);
 }
 
 //void TimelineGLCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
@@ -314,7 +322,10 @@ void TimelineGLCanvas::OnPaint(wxPaintEvent& event)
 		//									m_appData->settings->simulationStartingLocation.lat / 1000.0); // working
 	}
 
-	Render();
+	if (m_appData->rendering == true)
+	{
+		Render();
+	}
 
 	event.Skip();
 }
@@ -355,8 +366,13 @@ void TimelineGLCanvas::Render()
 			  camera_target.x, camera_target.y, camera_target.z,
 			  camera_up.x, camera_up.y, camera_up.z);
 
+	//glGetIntegerv(GL_VIEWPORT, m_viewport);
+	//glGetDoublev(GL_MODELVIEW_MATRIX, m_modelview);
+	//glGetDoublev(GL_PROJECTION_MATRIX, m_projection);
+
 	// Set debug string
 	m_debugString = std::string("Camera Pos: ") + boost::str(boost::format("%.1lf, %.1lf, %.1lf") % camera_position.x % camera_position.y % camera_position.z).c_str();
+	m_debugString += std::string(" | Mouse X, Y: ") + boost::str(boost::format("%.3lf, %.3lf") % m_clickPosX % m_clickPosY).c_str();
 
 	// Apply world translation
 	//glTranslated(l_worldTranslation.x, l_worldTranslation.y, l_worldTranslation.z);
@@ -410,6 +426,42 @@ void TimelineGLCanvas::Render()
 	SwapBuffers();
 }
 
+void TimelineGLCanvas::CheckForSelection()
+{
+	float		y_spacing			= l_timeline_y_gap_event * m_cameraMatrix.GetPositionZ();
+	float		events_start_y		= (l_timeline_y_total_height / 2.0) * m_cameraMatrix.GetPositionZ();
+	float		text_height			= l_timeline_y_event_text_height * m_cameraMatrix.GetPositionZ();
+	float		y1_pos				= events_start_y;
+	float		y2_pos				= y1_pos - text_height;
+
+	int line_number				= 0;
+	m_selectedId					= -1;
+
+	for (TimeLineEventListIter iter = m_appData->eventList.begin(); iter != m_appData->eventList.end(); iter++)
+	{
+		if (SVS::Math::InRange(m_clickPosX, iter->startDate, iter->endDate) &&
+			 SVS::Math::InRange(m_clickPosY, (double)y2_pos, (double)y1_pos))
+		{
+			m_selectedId = iter->id;
+			break;
+		}
+
+		line_number++;
+
+		if (line_number == l_numLines)
+		{
+			line_number = 0;
+			y1_pos		= events_start_y;
+			y2_pos		= y1_pos - text_height;
+		}
+		else
+		{
+			y1_pos -= y_spacing;
+			y2_pos -= y_spacing;
+		}
+	}
+}
+
 void TimelineGLCanvas::DrawTimelineEventDataList()
 {
 	SVS::Drawing::RGB color;
@@ -426,13 +478,18 @@ void TimelineGLCanvas::DrawTimelineEventDataList()
 
 	DrawTimelineBackground(date_font_scale, events_start_y, events_end_y);
 
-	int line_number = 0;
+	int line_number	= 0;
+	bool selected		= false;
 
-	for (TimeLineEventListConstIter iter = m_appData->eventList.begin(); iter != m_appData->eventList.end(); iter++)
+	for (TimeLineEventListIter iter = m_appData->eventList.begin(); iter != m_appData->eventList.end(); iter++)
 	{
 		color = l_displayColors[colorIndex++];
 
-		DrawTimelineEvent(*iter, font_scale, y1_pos, y2_pos, color.r, color.g, color.b);
+		//selected = SVS::Math::InRange(m_clickPosX, iter->startDate, iter->endDate) &&
+		//			  SVS::Math::InRange(m_clickPosY, (double)y2_pos, (double)y1_pos);
+		selected = (iter->id == m_selectedId);
+
+		DrawTimelineEvent(*iter, selected, font_scale, y1_pos, y2_pos, color.r, color.g, color.b);
 
 		if (colorIndex == l_numDisplayColors)
 		{
@@ -539,8 +596,14 @@ void TimelineGLCanvas::DrawTimelineBackground(float font_scale, float events_sta
 	}
 }
 
-void TimelineGLCanvas::DrawTimelineEvent(const TimelineEventData& eventData, float font_scale, float y1_pos, float y2_pos, uint8_t red, uint8_t green, uint8_t blue)
+void TimelineGLCanvas::DrawTimelineEvent(const TimelineEventData& eventData, bool selected, float font_scale, float y1_pos, float y2_pos, uint8_t red, uint8_t green, uint8_t blue)
 {
+	if (selected == true)
+	{
+		float surround_spacing = l_timeline_y_selection * m_cameraMatrix.GetPositionZ();
+		OpenGLHelper::DrawSolidRectangle(eventData.startDate - surround_spacing, y1_pos + surround_spacing, eventData.endDate + surround_spacing, y2_pos - surround_spacing, 0x00, 0xA7, 0xC3); // selection blue
+	}
+
 	// Draw event period bar
 
 	OpenGLHelper::DrawSolidRectangle(eventData.startDate, y1_pos, eventData.endDate, y2_pos, red, green, blue);
@@ -692,9 +755,10 @@ void TimelineGLCanvas::OnKeyUp(wxKeyEvent& event)
 	event.Skip();
 }
 
-//-----------------------------------------------------------------------------
-// Returns true if exit key is pressed
-//-----------------------------------------------------------------------------
+//bool TimelineGLCanvas::IsGraphShowing()
+//{
+//	return (m_graphDialog->IsShownOnScreen() == true);
+//}
 
 //void TimelineGLCanvas::OnMouse(wxMouseEvent& event)
 //{
@@ -731,84 +795,139 @@ void TimelineGLCanvas::OnKeyUp(wxKeyEvent& event)
 //	event.Skip();
 //}
 
+void TimelineGLCanvas::OnLeftDown(wxMouseEvent& event)
+{
+	MouseToOpenGLPlane(event, this, m_clickPosX, m_clickPosY);
+	CheckForSelection();
 
-//bool TimelineGLCanvas::IsGraphShowing()
-//{
-//	return (m_graphDialog->IsShownOnScreen() == true);
+	event.Skip();
+}
+
+void TimelineGLCanvas::MouseToOpenGLPlane(wxMouseEvent& event, wxGLCanvas* canvas, double& outX, double& outY)
+{
+	// 1. Get viewport and matrix data
+	GLint viewport[4];
+	GLdouble modelview[16];
+	GLdouble projection[16];
+
+	// Only want to call these occasionally as they stall the render pipeline
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+	glGetDoublev(GL_PROJECTION_MATRIX, projection);
+
+//SVS::Matrix4d m1, m_cameraMatrixTransposed;
+//m_cameraMatrixTransposed = m_cameraMatrix;
+////m_cameraMatrixTransposed.Rotate(SVS::Vector3Dd(0.0, 1.0, 0.0), SVS::Angle::Degrees(180.0));
+////m_cameraMatrixTransposed.SetRight(-m_cameraMatrixTransposed.GetRight());
+////m_cameraMatrixTransposed.RotateRelativeYAxis(SVS::Angle::Degrees(180.0));
+////m_cameraMatrixTransposed.SetPositionZ(-m_cameraMatrixTransposed.GetPositionZ());
+//m_cameraMatrixTransposed = m_cameraMatrixTransposed.Transpose();
+//m_cameraMatrixTransposed.Inverse(m1);
+//m_cameraMatrixTransposed = m1;
+
+//// correct values but signs wrong
+//SVS::Matrix4d m_cameraMatrixTransposed;
+//m_cameraMatrix.Inverse(m_cameraMatrixTransposed);
+//m_cameraMatrixTransposed = m_cameraMatrixTransposed.Transpose();
+//m_cameraMatrixTransposed.SetRightX(-m_cameraMatrixTransposed.GetRightX());	// 0
+//m_cameraMatrixTransposed.SetAtX(-m_cameraMatrixTransposed.GetAtX());	// 2
+//m_cameraMatrixTransposed.SetPositionY(-m_cameraMatrixTransposed.GetPositionY());	// 7, 0 goes to -0 so probably not necessary
+//m_cameraMatrixTransposed.SetRightZ(-m_cameraMatrixTransposed.GetRightZ());	// 8
+//m_cameraMatrixTransposed.SetAtZ(-m_cameraMatrixTransposed.GetAtZ());	// 10
+//m_cameraMatrixTransposed.Set12(-m_cameraMatrixTransposed.Get12());	// 12
+//m_cameraMatrixTransposed.Set14(-m_cameraMatrixTransposed.Get14());	// 14
+
+
+//// Transposes a 4x4 matrix in-place
+//void transpose4x4(float mat[4][4]) {
+//    for (int i = 0; i < 4; ++i) {
+//        for (int j = i + 1; j < 4; ++j) {
+//            std::swap(mat[i][j], mat[j][i]);
+//        }
+//    }
 //}
+//gluInvertMatrix
 
-//void TimelineGLCanvas::OnUpdateGraphDataCallback(bool clearGraph)
-//{
-//	if (m_graphDataPtr == &m_yawGraphData)
-//	{
-//		m_appData->autonomousController->RetrieveYawPIDOutputValues(m_yawGraphData, clearGraph);
-//	}
-//	else if (m_graphDataPtr == &m_pitchGraphData)
-//	{
-//		m_appData->autonomousController->RetrievePitchPIDOutputValues(m_pitchGraphData, clearGraph);
-//	}
-//	else if (m_graphDataPtr == &m_rollGraphData)
-//	{
-//		m_appData->autonomousController->RetrieveRollPIDOutputValues(m_rollGraphData, clearGraph);
-//	}
-//	else if (m_graphDataPtr == &m_throttleGraphData)
-//	{
-//		m_appData->autonomousController->RetrieveThrottlePIDOutputValues(m_throttleGraphData, clearGraph);
-//	}
-//	else if (m_graphDataPtr == &m_distanceGraphData)
-//	{
-//		m_appData->autonomousController->RetrieveDistancePIDOutputValues(m_distanceGraphData, clearGraph);
-//	}
-//	else
-//	{
-//		BREAK_HERE();
-//	}
-//
-//	if (clearGraph == true)
-//	{
-//		ClearGraph();
-//	}
-//}
 
-//void TimelineGLCanvas::AddPIDGraphData(GraphType graphType, const double& timeSecs, const double& value)
-//{
-//	GraphDialog::GraphData gd;
-//
-//	gd.time	= timeSecs;
-//	gd.data	= value;
-//
-//	switch (graphType)
-//	{
-//		case GraphType::GraphType_Yaw: m_yawGraphData.push_back(gd);		break;
-//		case GraphType::GraphType_Pitch: m_pitchGraphData.push_back(gd);	break;
-//		case GraphType::GraphType_Roll: m_rollGraphData.push_back(gd);		break;
-//		default: break;
-//	}
-//}
+   //inline T GetRightX()    { return m_matrix[0];   }
+   //inline T GetRightY()    { return m_matrix[4];   }
+   //inline T GetRightZ()    { return m_matrix[8];   }
+   //inline T GetUpX()       { return m_matrix[1];   }
+   //inline T GetUpY()       { return m_matrix[5];   }
+   //inline T GetUpZ()       { return m_matrix[9];   }
+   //inline T GetAtX()       { return m_matrix[2];   }
+   //inline T GetAtY()       { return m_matrix[6];   }
+   //inline T GetAtZ()       { return m_matrix[10];  }
+   //inline T GetPositionX() { return m_matrix[3];   }
+   //inline T GetPositionY() { return m_matrix[7];   }
+   //inline T GetPositionZ() { return m_matrix[11];  }
 
-// Can be called by hitting the R key in this class or by entering new values for the PIDs in the VisualizerDialog text box
+//SVS::Matrix4d m1, m_cameraMatrixTransposed;
+//m1 = m_cameraMatrix.Transpose();
+//m1.Inverse(m_cameraMatrixTransposed);
 
-//void TimelineGLCanvas::ResetPIDGraphData(GraphType graphType)
-//{
-//	switch (graphType)
-//	{
-//		case GraphType::GraphType_Yaw: m_yawGraphData.clear();		break;
-//		case GraphType::GraphType_Pitch: m_pitchGraphData.clear();	break;
-//		case GraphType::GraphType_Roll: m_rollGraphData.clear();		break;
-//		default: break;
-//	}
-//}
+	// 2. Correct the Y-coordinate (wxWidgets top-left is 0, OpenGL bottom-left is 0)
+	double mouseX = event.GetX();
+	double mouseY = viewport[3] - event.GetY(); 
+//	double mouseY = viewport[3] - event.GetY() - 1; 
 
-//void TimelineGLCanvas::ResetPIDGraphData()
-//{
-//	if (m_graphDataPtr != nullptr)
-//	{
-//		m_previousGraphData = *m_graphDataPtr;
-//	}
-//
-//	m_yawGraphData.clear();
-//	m_pitchGraphData.clear();
-//	m_rollGraphData.clear();
-//	m_throttleGraphData.clear();
-//	m_distanceGraphData.clear();
-//}
+	// 3. Unproject onto the near plane (Z = 0.0)
+	double nearX, nearY, nearZ;
+	gluUnProject(mouseX, mouseY, 0.0, modelview, projection, viewport, &nearX, &nearY, &nearZ);
+
+	// 4. Unproject onto the far plane (Z = 1.0)
+	double farX, farY, farZ;
+	gluUnProject(mouseX, mouseY, 1.0, modelview, projection, viewport, &farX, &farY, &farZ);
+
+	// 5. Calculate intersection with the Z = 0 plane using linear interpolation
+	double t = -nearZ / (farZ - nearZ);
+	outX = nearX + t * (farX - nearX);
+	outY = nearY + t * (farY - nearY);
+}
+
+/*
+// code to replicate glulookat
+
+#include <cmath>
+#include <array>
+
+struct Vec3 { float x, y, z; };
+
+Vec3 normalize(Vec3 v) {
+    float len = std::sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+    return { v.x / len, v.y / len, v.z / len };
+}
+
+Vec3 cross(Vec3 a, Vec3 b) {
+    return {
+        a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x
+    };
+}
+
+float dot(Vec3 a, Vec3 b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+std::array<float, 16> replicate_gluLookAt(Vec3 eye, Vec3 center, Vec3 up) {
+    // 1. Forward Vector
+    Vec3 f = normalize({ center.x - eye.x, center.y - eye.y, center.z - eye.z });
+    
+    // 2. Side (Right) Vector
+    Vec3 s = normalize(cross(f, up));
+    
+    // 3. True Up Vector
+    Vec3 u = cross(s, f);
+
+    // 4. Combined Rotation and Translation Matrix (PP. row-major array. probably want to remap to column major)
+    std::array<float, 16> viewMatrix = {{
+         s.x,  s.y,  s.z, -dot(s, eye),
+         u.x,  u.y,  u.z, -dot(u, eye),
+        -f.x, -f.y, -f.z,  dot(f, eye),
+         0.0f, 0.0f, 0.0f, 1.0f
+    }};
+
+    return viewMatrix;
+}
+*/

@@ -16,15 +16,17 @@ public:
    MainForm(wxWindow* parent, AppData* appData);
    ~MainForm();
 
-	virtual void OnExitButtonClick(wxCommandEvent& event) override;
 	virtual void OnGuiTimer(wxTimerEvent& event) override;
 	virtual void OnRenderTickTimer(wxTimerEvent& event) override;
 	virtual void OnDateTextCtrlOnText(wxCommandEvent& event) override;
 	virtual void OnDateTextCtrlTextEnter(wxCommandEvent& event) override;
 	virtual void OnDateTextCtrlLeftDown(wxMouseEvent& event) override;
+	virtual void OnExitButtonClick(wxCommandEvent& event) override;
+	virtual void OnClose(wxCloseEvent& event) override;
 	virtual void OnIdle(wxIdleEvent& event) override;
 	virtual void OnTimelineDateScrollBarScroll(wxScrollEvent& event) override;
 	virtual void OnTimelineZoomScrollBarScroll(wxScrollEvent& event) override;
+	virtual void OnTimelineZoomSliderScroll(wxScrollEvent& event) override;
 	virtual void OnMainFormKeyDown(wxKeyEvent& event) override;
 	virtual void OnDateSpinBtnSpinDown(wxSpinEvent& event) override;
 	virtual void OnDateSpinBtnSpinUp(wxSpinEvent& event) override;
@@ -46,6 +48,7 @@ private:
 	void UpdateDateText();
 	void UpdateImage();
 	void ImageUpdateThread(void);
+	bool LoadHistoryFile(std::string filename);
 
 private:
 	ImageDialog*					m_imageDialog				= nullptr;
@@ -58,7 +61,8 @@ private:
 	bool								m_firstTimeShown			= true;
 	bool								m_updating_date_text		= true;
 	bool								m_image_requires_update	= true;
-	double							m_old_date					= std::numeric_limits<double>::lowest();
+//	double							m_old_date					= std::numeric_limits<double>::lowest();
+	int								m_oldImageId				= -1;
 	bool								m_runImageUpdateThread	= false;
 	boost::thread*					m_imageUpdateThread		= nullptr;
 };

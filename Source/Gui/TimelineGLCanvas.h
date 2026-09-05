@@ -54,6 +54,7 @@ public:
 	void SetAppData(AppData* appData) { m_appData = appData; }
 	void SetDate(double date);
 	void SetZoom(double percentage);
+	double GetZoom() { return m_cameraMatrix.GetPositionZ(); }
 	double GetDate();
 	static std::string DateToString(double date);
 
@@ -65,6 +66,7 @@ protected:
 	void OnKeyDown(wxKeyEvent& event);
 	void OnKeyUp(wxKeyEvent& event);
 	//void OnMouse(wxMouseEvent& event);
+	void OnLeftDown(wxMouseEvent& event);
 
 private:
 	void InitGL();
@@ -76,9 +78,11 @@ private:
 	//void RenderSeaGrid();
 //	void ShowGraph(GraphType graphType);
 //	void OnUpdateGraphDataCallback(bool clearGraph);
+	void CheckForSelection();
 	void DrawTimelineEventDataList();
-	void DrawTimelineEvent(const TimelineEventData& eventData, float font_scale, float y1_pos, float y2_pos, uint8_t red = 255, uint8_t green = 255, uint8_t blue = 255);
+	void DrawTimelineEvent(const TimelineEventData& eventData, bool selected, float font_scale, float y1_pos, float y2_pos, uint8_t red = 255, uint8_t green = 255, uint8_t blue = 255);
 	void DrawTimelineBackground(float font_scale, float events_start_y, float events_end_y);
+	void MouseToOpenGLPlane(wxMouseEvent& event, wxGLCanvas* canvas, double& outX, double& outY);
 
 private:
 	// OpenGL view data
@@ -122,15 +126,15 @@ private:
 //	AppData*												m_appData					= nullptr;
 	wxGLContext*										m_glRC						= nullptr; // No longer needed since WXWIN_COMPATIBILITY_2_8???
 	GLData												m_gldata;
-//	DXFRenderer											m_renderer;
 	SVS::Matrix4d										m_cameraMatrix;
+	GLint													m_viewport[4];
+	GLdouble												m_modelview[16];
+	GLdouble												m_projection[16];
+//	DXFRenderer											m_renderer;
 //	VesselData											m_vesselData;
 //	MouseData											m_mouseData;
 //	InputData											m_inputData;
 //   DXFRenderer											m_renderer;
-//	bool*													m_simulationFrozenPtr	= nullptr;
-//	bool													m_holdSimulationInPlace	= true;
-//	double												m_cameraSpeedScale		= 0.5;
 	std::mutex											m_renderMutex;
 	std::string											m_debugString;
 //	GraphDialog*										m_graphDialog				= nullptr;
@@ -147,10 +151,13 @@ private:
 
 	//wxJoystick*											m_joyStick					= nullptr;
 	//JoystickData										m_joystickData;
-	AppData*					m_appData					= nullptr;
-	OpenGLFont				m_openglFont;
-	double					m_lowerDisplayDate		= 0.0;
-	double					m_upperDisplayDate		= 0.0;
+	OpenGLFont						m_openglFont;
+	int								m_selectedId				= -1;
+	AppData*							m_appData					= nullptr;
+	//double							m_lowerDisplayDate		= 0.0;
+	//double							m_upperDisplayDate		= 0.0;
+	double							m_clickPosX					= 0.0;
+	double							m_clickPosY					= 0.0;
 
 
 	wxDECLARE_NO_COPY_CLASS(TimelineGLCanvas);

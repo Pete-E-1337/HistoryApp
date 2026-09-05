@@ -104,6 +104,7 @@ svs_auto_lib_src(
 		FileIO/AsyncFileLoader
 		Logger/Log
 		Math/MiscMath
+		Math/Matrix4.h
 #		Memory/CircularBuffer
 		Memory/MemoryPool
 #		Spatial/Angle

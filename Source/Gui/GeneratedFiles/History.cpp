@@ -142,7 +142,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	fgSizer11->SetFlexibleDirection( wxBOTH );
 	fgSizer11->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
-	m_timelineZoomScrollBar = new wxScrollBar( m_panel8, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL );
+	m_timelineZoomScrollBar = new wxScrollBar( m_panel8, wxID_ANY, wxDefaultPosition, wxSize( 26,-1 ), wxSB_VERTICAL );
 	fgSizer11->Add( m_timelineZoomScrollBar, 0, wxEXPAND|wxLEFT|wxTOP, 5 );
 	
 	
@@ -165,10 +165,10 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	fgSizer61->SetFlexibleDirection( wxBOTH );
 	fgSizer61->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
-	m_timelineDateScrollBar = new wxScrollBar( m_panel6, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL );
+	m_timelineDateScrollBar = new wxScrollBar( m_panel6, wxID_ANY, wxDefaultPosition, wxSize( -1,26 ), wxSB_HORIZONTAL );
 	fgSizer61->Add( m_timelineDateScrollBar, 0, wxALIGN_CENTER_VERTICAL|wxBOTTOM|wxEXPAND|wxLEFT|wxTOP, 5 );
 	
-	m_panel9 = new wxPanel( m_panel6, wxID_ANY, wxDefaultPosition, wxSize( 22,-1 ), wxTAB_TRAVERSAL );
+	m_panel9 = new wxPanel( m_panel6, wxID_ANY, wxDefaultPosition, wxSize( 31,-1 ), wxTAB_TRAVERSAL );
 	m_panel9->SetBackgroundColour( wxColour( 208, 208, 208 ) );
 	
 	fgSizer61->Add( m_panel9, 1, wxEXPAND | wxALL, 5 );
@@ -184,13 +184,9 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	
 	wxFlexGridSizer* fgSizer6;
 	fgSizer6 = new wxFlexGridSizer( 1, 0, 0, 0 );
-	fgSizer6->AddGrowableCol( 0 );
 	fgSizer6->AddGrowableCol( 4 );
 	fgSizer6->SetFlexibleDirection( wxBOTH );
 	fgSizer6->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
-	
-	
-	fgSizer6->Add( 0, 0, 1, wxEXPAND, 5 );
 	
 	m_staticText3 = new wxStaticText( m_panel7, wxID_ANY, wxT("Date"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText3->Wrap( -1 );
@@ -200,10 +196,17 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	fgSizer6->Add( m_dateTextCtrl, 0, wxALIGN_CENTER_VERTICAL, 5 );
 	
 	m_dateSpinBtn = new wxSpinButton( m_panel7, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
-	fgSizer6->Add( m_dateSpinBtn, 0, wxEXPAND, 5 );
+	fgSizer6->Add( m_dateSpinBtn, 0, wxEXPAND|wxRIGHT, 5 );
 	
+	m_staticText4 = new wxStaticText( m_panel7, wxID_ANY, wxT("Range"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_staticText4->Wrap( -1 );
+	fgSizer6->Add( m_staticText4, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 	
-	fgSizer6->Add( 0, 0, 1, wxEXPAND, 5 );
+	m_timelineZoomSlider = new wxSlider( m_panel7, wxID_ANY, 0, 0, 10000, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL|wxSL_TOP );
+	fgSizer6->Add( m_timelineZoomSlider, 0, wxEXPAND|wxRIGHT, 5 );
+	
+	m_zoomTextCtrl = new wxTextCtrl( m_panel7, wxID_ANY, wxT("6 years"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_READONLY );
+	fgSizer6->Add( m_zoomTextCtrl, 0, wxALIGN_CENTER_VERTICAL, 5 );
 	
 	
 	m_panel7->SetSizer( fgSizer6 );
@@ -255,6 +258,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	this->Centre( wxBOTH );
 	
 	// Connect Events
+	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( MainForm::OnClose ) );
 	this->Connect( wxEVT_IDLE, wxIdleEventHandler( MainForm::OnIdle ) );
 	this->Connect( wxEVT_KEY_DOWN, wxKeyEventHandler( MainForm::OnMainFormKeyDown ) );
 	m_mainSplitter->Connect( wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, wxSplitterEventHandler( MainForm::OnMainSplitterSplitterSashPosChanged ), NULL, this );
@@ -282,6 +286,15 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_dateTextCtrl->Connect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainForm::OnDateTextCtrlTextEnter ), NULL, this );
 	m_dateSpinBtn->Connect( wxEVT_SCROLL_LINEDOWN, wxSpinEventHandler( MainForm::OnDateSpinBtnSpinDown ), NULL, this );
 	m_dateSpinBtn->Connect( wxEVT_SCROLL_LINEUP, wxSpinEventHandler( MainForm::OnDateSpinBtnSpinUp ), NULL, this );
+	m_timelineZoomSlider->Connect( wxEVT_SCROLL_TOP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Connect( wxEVT_SCROLL_BOTTOM, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Connect( wxEVT_SCROLL_LINEUP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Connect( wxEVT_SCROLL_LINEDOWN, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Connect( wxEVT_SCROLL_PAGEUP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Connect( wxEVT_SCROLL_PAGEDOWN, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Connect( wxEVT_SCROLL_THUMBTRACK, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Connect( wxEVT_SCROLL_THUMBRELEASE, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Connect( wxEVT_SCROLL_CHANGED, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
 	m_exitButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnExitButtonClick ), NULL, this );
 	this->Connect( MAIN_GUI_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnGuiTimer ) );
 	this->Connect( MAIN_RENDER_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnRenderTickTimer ) );
@@ -290,6 +303,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 MainForm::~MainForm()
 {
 	// Disconnect Events
+	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( MainForm::OnClose ) );
 	this->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainForm::OnIdle ) );
 	this->Disconnect( wxEVT_KEY_DOWN, wxKeyEventHandler( MainForm::OnMainFormKeyDown ) );
 	m_mainSplitter->Disconnect( wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, wxSplitterEventHandler( MainForm::OnMainSplitterSplitterSashPosChanged ), NULL, this );
@@ -317,6 +331,15 @@ MainForm::~MainForm()
 	m_dateTextCtrl->Disconnect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainForm::OnDateTextCtrlTextEnter ), NULL, this );
 	m_dateSpinBtn->Disconnect( wxEVT_SCROLL_LINEDOWN, wxSpinEventHandler( MainForm::OnDateSpinBtnSpinDown ), NULL, this );
 	m_dateSpinBtn->Disconnect( wxEVT_SCROLL_LINEUP, wxSpinEventHandler( MainForm::OnDateSpinBtnSpinUp ), NULL, this );
+	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_TOP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_BOTTOM, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_LINEUP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_LINEDOWN, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_PAGEUP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_PAGEDOWN, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_THUMBTRACK, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_THUMBRELEASE, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
+	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_CHANGED, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
 	m_exitButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnExitButtonClick ), NULL, this );
 	this->Disconnect( MAIN_GUI_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnGuiTimer ) );
 	this->Disconnect( MAIN_RENDER_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnRenderTickTimer ) );

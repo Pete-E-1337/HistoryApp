@@ -7,10 +7,13 @@
 
 typedef struct TimelineEventData
 {
+	std::string		name;
 	double			startDate;
 	double			endDate;
-	std::string		name;
+	double			latitude;
+	double			longitude;
 	std::string		imageFilename;
+	int				id;
 } TimelineEventData;
 
 typedef std::vector<TimelineEventData>		TimeLineEventList;
@@ -23,18 +26,13 @@ public:
    AppData();
    virtual ~AppData();
 
+	void SetLatestDate();
+
 	//Settings*					settings					= nullptr;
-	//WavebladeDriver*        wavebladeDriver		= nullptr;
-	//AutonomousController*	autonomousController	= nullptr;
-	//ManualController*			manualController		= nullptr;
-	//ClientComms*				clientComms				= nullptr;
-	//DebugData*					debugData				= nullptr;
-	//bool							freezeSimulation		= false;
-	//bool							reset						= false;
-	TimeLineEventList		eventList;
-	TimeLineEventList		imageList;
-	double					newestDate;
-	
+	TimeLineEventList			eventList;
+	TimeLineEventList			imageList;
+	double						latestDate;
+	bool							rendering				= true;
 };
 
 #endif // APPDATA_H

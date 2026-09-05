@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <fstream>
 #include <sstream>
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <SVSLibrary/Std.h>
@@ -30,10 +31,14 @@ SVS_WARNING_DISABLE(4189) // local variable is initialized but not referenced
 SVS_WARNING_DISABLE(4100) // Unreferenced formal parameter in boost
 
 const char*				l_settingsFilename				= "settings.txt";
+//const char*				l_historyFilename					= "Data/SampleHistory.csv";
+const char*				l_historyFilename					= "Data/1000_significant_history_events.csv";
 static const int		l_guiTimerInterval				= 300;
 static const int		l_renderTimerInterval			= 40;
 static const int		l_imageUpdateThreadInterval	= 300;
 static const double	l_timelineSplitterProportion	= 0.6;
+static const double	l_oneDay								= 1.0 / 365.0;
+static const double	l_oneMonth							= 1.0 / 12.0;
 
 MainForm::MainForm(wxWindow* parent, AppData* appData) :
 	History::MainForm(parent),
@@ -99,6 +104,8 @@ void MainForm::Initialise()
 {
 	LoadSettings();
 
+	LoadHistoryFile(l_historyFilename);
+
 	 // Call this before loading or processing any images
     wxInitAllImageHandlers();
 
@@ -123,6 +130,11 @@ void MainForm::Initialise()
 
 	m_timelineDateScrollBar->SetScrollbar(5000, 1, 10000, 10, true);
 	m_timelineZoomScrollBar->SetScrollbar(1, 1, 10000, 10, true);
+
+	//m_timelineZoomSlider->Set
+	std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * 6.0)) + " years";
+	m_zoomTextCtrl->SetValue(str);
+
 	SetTimelineDateScrollBarPositionFromDate(0.0);
 
 	// Set the application to be (windowed) full screen and centred
@@ -171,9 +183,30 @@ void MainForm::SetAppData(AppData* appData)
 
 void MainForm::OnExitButtonClick(wxCommandEvent& event)
 {
-   NOT_USED(event);
+	m_appData->rendering = false;
 
    Close();
+
+	event.Skip();
+}
+
+void MainForm::OnClose(wxCloseEvent& event)
+{
+	m_appData->rendering = false;
+
+	event.Skip();
+}
+
+void MainForm::OnIdle(wxIdleEvent& event)
+{
+	if (m_firstTimeShown == true)
+	{
+		// Set the splitter position. NB. Couldn't be done during initialization :/
+		int pos = l_timelineSplitterProportion * (double)this->GetSize().GetHeight();
+		m_mainSplitter->SetSashPosition(pos, true);
+
+		m_firstTimeShown = false;
+	}
 
 	event.Skip();
 }
@@ -243,20 +276,6 @@ void MainForm::OnDateTextCtrlLeftDown(wxMouseEvent& event)
 	event.Skip();
 }
 
-void MainForm::OnIdle(wxIdleEvent& event)
-{
-	if (m_firstTimeShown == true)
-	{
-		// Set the splitter position. NB. Couldn't be done during initialization :/
-		int pos = l_timelineSplitterProportion * (double)this->GetSize().GetHeight();
-		m_mainSplitter->SetSashPosition(pos, true);
-
-		m_firstTimeShown = false;
-	}
-
-	event.Skip();
-}
-
 void MainForm::UpdateDateText()
 {
 //	m_dateTextCtrl->SetValue(std::to_string((int)m_timelineCanvas->GetDate()));
@@ -276,84 +295,87 @@ void MainForm::UpdateImage()
 	{
 		double date = m_timelineCanvas->GetDate();
 
-//		if (SVS::Math::InRange(m_old_date, date - 0.01, date + 0.01) == false)
+		bool image_found = false;
+
+		for (TimeLineEventListConstIter iter = m_appData->imageList.begin(); iter != m_appData->imageList.end(); iter++)
 		{
-			bool image_found = false;
-
-			for (TimeLineEventListConstIter iter = m_appData->imageList.begin(); iter != m_appData->imageList.end(); iter++)
+			if (SVS::Math::InRange(date, iter->startDate, iter->endDate) == true)
 			{
-				if (SVS::Math::InRange(date, iter->startDate, iter->endDate) == true)
+				if (iter->id == m_oldImageId)
 				{
-					if (iter->imageFilename.empty() == false)
+					image_found = true;
+					break;	// no need to reload the same image
+				}
+
+				if (iter->imageFilename.empty() == false)
+				{
+					int w, h;
+
+					wxBitmap bitmap(iter->imageFilename, wxBITMAP_TYPE_JPEG);
+
+					if (bitmap.IsOk() == false)
 					{
-						int w, h;
-
-						wxBitmap bitmap(iter->imageFilename, wxBITMAP_TYPE_JPEG);
-
-						if (bitmap.IsOk() == false)
-						{
-//							std::string msg = "Could not load file:  \"" + iter->imageFilename + "\"";
-//							wxMessageDialog(this, msg.c_str(), "Error", wxOK | wxICON_ERROR);
-//							wxMessageBox(msg.c_str(), "Error", wxOK | wxSTAY_ON_TOP);
-							image_found = false;
-							break;
-						}
-
-						wxImage img = bitmap.ConvertToImage();
-//						m_bitmap->GetSize(&w, &h);
-						m_bitmapPanel->GetSize(&w, &h);
-
-						if ((w == 0) || (h == 0))
-							return;
-//							break;
-
-						// maintain aspect ratio
-						{
-							double imgRatio = (double)img.GetWidth() / img.GetHeight();
-							double targetRatio = (double)w / h;
-
-							if (targetRatio > imgRatio)
-							{
-								w = std::lround(h * imgRatio);
-							}
-							else
-							{
-								h = std::lround(w / imgRatio);
-							}
-						}
-
-						wxImage shrunkImg = img.Scale(w, h, wxIMAGE_QUALITY_HIGH);
-						m_bitmap->SetBitmap(shrunkImg);
-//						m_bitmap->Refresh();
-//						m_bitmapPanel->Refresh();
-						m_bitmapPanel->Layout();
-
-						if (m_imageDialog != nullptr)
-						{
-							m_imageDialog->SetImageFilename(iter->imageFilename);
-						}
-
-						image_found = true;
+//						std::string msg = "Could not load file:  \"" + iter->imageFilename + "\"";
+//						wxMessageDialog(this, msg.c_str(), "Error", wxOK | wxICON_ERROR);
+//						wxMessageBox(msg.c_str(), "Error", wxOK | wxSTAY_ON_TOP);
+						image_found = false;
 						break;
-					 }
+					}
+
+					wxImage img = bitmap.ConvertToImage();
+//					m_bitmap->GetSize(&w, &h);
+					m_bitmapPanel->GetSize(&w, &h);
+
+					if ((w == 0) || (h == 0))
+					{
+//						return;
+						image_found = false;
+						break;
+					}
+
+					// maintain aspect ratio
+					{
+						double imgRatio = (double)img.GetWidth() / img.GetHeight();
+						double targetRatio = (double)w / h;
+
+						if (targetRatio > imgRatio)
+						{
+							w = std::lround(h * imgRatio);
+						}
+						else
+						{
+							h = std::lround(w / imgRatio);
+						}
+					}
+
+					wxImage shrunkImg = img.Scale(w, h, wxIMAGE_QUALITY_HIGH);
+					m_bitmap->SetBitmap(shrunkImg);
+					m_bitmapPanel->Layout();
+
+					if (m_imageDialog != nullptr)
+					{
+						m_imageDialog->SetImageFilename(iter->imageFilename);
+					}
+
+					image_found = true;
+					m_oldImageId = iter->id;
+					break;
 				}
 			}
+		}
 
-			if (image_found == false)
+		if (image_found == false)
+		{
+			// Clear the bitmap
+			m_bitmap->SetBitmap(wxNullBitmap);
+			m_bitmapPanel->Layout();
+
+			if (m_imageDialog != nullptr)
 			{
-				// Clear the bitmap
-				m_bitmap->SetBitmap(wxNullBitmap);
-//				m_bitmap->Refresh();
-//				m_bitmapPanel->Refresh();
-				m_bitmapPanel->Layout();
-
-				if (m_imageDialog != nullptr)
-				{
-					m_imageDialog->SetImageFilename("");
-				}
+				m_imageDialog->SetImageFilename("");
 			}
 
-			m_old_date = date;
+			m_oldImageId = -1;
 		}
 
 		m_image_requires_update = false;
@@ -373,7 +395,7 @@ void MainForm::OnTimelineDateScrollBarScroll(wxScrollEvent& event)
 	{
 		int pos = event.GetPosition();	// range is 0 to (range - 1) :/
 		double percentage = pos / (double)(m_timelineDateScrollBar->GetRange() - 1);
-		double date = (percentage * (m_appData->newestDate - m_appData->eventList.begin()->startDate)) + m_appData->eventList.begin()->startDate;
+		double date = (percentage * (m_appData->latestDate - m_appData->eventList.begin()->startDate)) + m_appData->eventList.begin()->startDate;
 
 		m_timelineCanvas->SetDate(date);
 
@@ -386,7 +408,7 @@ void MainForm::OnTimelineDateScrollBarScroll(wxScrollEvent& event)
 
 void MainForm::SetTimelineDateScrollBarPositionFromDate(double date)
 {
-	double percentage = (date - m_appData->eventList.begin()->startDate) / (m_appData->newestDate - m_appData->eventList.begin()->startDate);
+	double percentage = (date - m_appData->eventList.begin()->startDate) / (m_appData->latestDate - m_appData->eventList.begin()->startDate);
 	double pos = SVS::Math::LinearInterpolate(0, m_timelineDateScrollBar->GetRange(), percentage);
 	m_timelineDateScrollBar->SetThumbPosition((int)pos);
 }
@@ -397,6 +419,19 @@ void MainForm::OnTimelineZoomScrollBarScroll(wxScrollEvent& event)
 	double percentage = pos / (double)(m_timelineZoomScrollBar->GetRange() + 1);
 
 	m_timelineCanvas->SetZoom(percentage);
+
+	event.Skip();
+}
+
+void MainForm::OnTimelineZoomSliderScroll(wxScrollEvent& event)
+{
+	int pos = event.GetPosition();	// range is 0 to (range) :/
+	double percentage = pos / (double)(m_timelineZoomSlider->GetMax());
+
+	m_timelineCanvas->SetZoom(percentage);
+
+	std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * 6.0)) + " years";
+	m_zoomTextCtrl->SetValue(str);
 
 	event.Skip();
 }
@@ -465,3 +500,147 @@ void MainForm::OnBitmapLeftDown(wxMouseEvent& event)
 
 	event.Skip();
 }
+
+bool MainForm::LoadHistoryFile(std::string filename)
+{
+	std::ifstream file(filename);
+
+	if (file.is_open() == false)
+	{
+		std::string msg = "Could not load file:  \"" + filename + "\"";
+		wxMessageDialog(this, msg.c_str(), "Error", wxOK | wxICON_ERROR);
+		return false;
+	}
+
+	std::string line;
+	std::vector<std::string> strs;
+	TimelineEventData eventData;
+	int id = 0;
+
+	m_appData->eventList.clear();
+	m_appData->imageList.clear();
+    
+	// skip the "heading" line
+	if (!std::getline(file, line))
+	{
+		file.close();
+		return false;
+	}
+
+	while (std::getline(file, line))
+	{
+		boost::split(strs, line, boost::is_any_of(","));
+
+		for (auto& str : strs)
+		{
+			boost::trim(str);											// Remove leading/trailing whitespace and tabs
+			boost::trim_if(str, boost::is_any_of("\"'"));	// Strip surrounding quotes
+		}
+
+		// skip "comment" lines (lines that begin with a #)
+		if ((strs[0].size() > 1) && (strs[0][0] == '#'))
+			continue;
+
+		eventData.name						= strs[0];
+		eventData.startDate				= std::stod(strs[1]);
+		eventData.endDate					= std::stod(strs[2]);
+		eventData.latitude				= std::stod(strs[3]);
+		eventData.longitude				= std::stod(strs[4]);
+		eventData.imageFilename			= strs[5];
+		eventData.id						= id++;
+
+		if (eventData.endDate == eventData.startDate)
+		{
+			eventData.endDate += l_oneDay;
+		}
+
+		if (eventData.name.empty() == false)
+		{
+			m_appData->eventList.push_back(eventData);
+		}
+
+		if (eventData.imageFilename.empty() == false)
+		{
+			m_appData->imageList.push_back(eventData);
+		}
+	}
+
+	file.close();
+
+	std::sort(m_appData->eventList.begin(), m_appData->eventList.end(),
+					[](const TimelineEventData& a, const TimelineEventData& b) { return a.startDate < b.startDate; });
+
+	std::sort(m_appData->imageList.begin(), m_appData->imageList.end(),
+					[](const TimelineEventData& a, const TimelineEventData& b) { return a.startDate < b.startDate; });
+
+	m_appData->SetLatestDate();
+
+	return true;
+/*
+	boost::mutex::scoped_lock lock(*kdTreeMutex);
+
+	// Temporarily use a local vector to build the array so that we don't have to work
+	// out its size until all the data is loaded.
+
+	vector<GeoTransitRecord> tempFrames;
+	
+	char line[2048];
+	FILE *fp = fopen(filename.c_str(), "r");
+
+	if(fp == NULL) {
+		fprintf(stderr, "Can't open %s for reading\n", filename);
+		return false;
+	}
+	
+	
+	
+	// Skip through the header crap.
+	for(int i=0; i < 14; i++) {
+		if(fgets(line, sizeof(line), fp) == NULL) {
+			perror("fgets");
+			return false;
+		}
+		
+	}
+
+	int count = 0;
+	if(startIndex > 0) {
+		while(fgets(line, sizeof(line), fp)) {
+			count++;
+			if(count == startIndex) {
+				break;
+			}
+		}
+	}
+
+	while(fgets(line, sizeof(line), fp)) {
+
+		vector <string> strs;
+		boost::split(strs, line, boost::is_any_of(","));
+
+		GeoTransitRecord frame;
+		strcpy(frame.image_file,strs[2].c_str());
+		frame.lat = atof(strs[13].c_str());
+		frame.lon = atof(strs[14].c_str());
+		frame.yaw = atof(strs[15].c_str());
+		frame.pitch = atof(strs[15].c_str());
+		frame.roll = atof(strs[15].c_str());		
+		frame.vel_north = atof(strs[24].c_str());
+		frame.vel_east = atof(strs[25].c_str());
+		
+		
+		sscanf(strs[27].c_str(),"%llu",&(frame.timestamp));
+
+
+		tempFrames.push_back(frame);
+		
+		count++;
+	
+		if( (endIndex > 0) && (count > endIndex) )
+		{
+			break;
+		}
+	}
+*/
+}
+

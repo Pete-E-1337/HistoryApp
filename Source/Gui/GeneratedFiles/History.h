@@ -27,6 +27,7 @@
 #include <wx/textctrl.h>
 #include <wx/valtext.h>
 #include <wx/spinbutt.h>
+#include <wx/slider.h>
 #include <wx/splitter.h>
 #include <wx/button.h>
 #include <wx/timer.h>
@@ -69,6 +70,9 @@ namespace History
 			wxStaticText* m_staticText3;
 			wxTextCtrl* m_dateTextCtrl;
 			wxSpinButton* m_dateSpinBtn;
+			wxStaticText* m_staticText4;
+			wxSlider* m_timelineZoomSlider;
+			wxTextCtrl* m_zoomTextCtrl;
 			wxPanel* m_bottomPanel;
 			wxTextCtrl* m_debugTextCtrl;
 			wxButton* m_exitButton;
@@ -77,6 +81,7 @@ namespace History
 			wxMenuBar* m_menuBar;
 			
 			// Virtual event handlers, overide them in your derived class
+			virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
 			virtual void OnIdle( wxIdleEvent& event ) { event.Skip(); }
 			virtual void OnMainFormKeyDown( wxKeyEvent& event ) { event.Skip(); }
 			virtual void OnMainSplitterSplitterSashPosChanged( wxSplitterEvent& event ) { event.Skip(); }
@@ -88,6 +93,7 @@ namespace History
 			virtual void OnDateTextCtrlTextEnter( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnDateSpinBtnSpinDown( wxSpinEvent& event ) { event.Skip(); }
 			virtual void OnDateSpinBtnSpinUp( wxSpinEvent& event ) { event.Skip(); }
+			virtual void OnTimelineZoomSliderScroll( wxScrollEvent& event ) { event.Skip(); }
 			virtual void OnExitButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnGuiTimer( wxTimerEvent& event ) { event.Skip(); }
 			virtual void OnRenderTickTimer( wxTimerEvent& event ) { event.Skip(); }

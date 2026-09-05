@@ -38,7 +38,7 @@ private:
    void StoreExeName();
    bool EnsureSingleInstance();
 	void AddEventTimelineEventData(double startDate, double endDate, const std::string& name, const std::string& imageFilename);
-	void FindNewestDate();
+	//void FindNewestDate();
 
 private:
    template <typename T> using Ptr = std::unique_ptr<T>;
