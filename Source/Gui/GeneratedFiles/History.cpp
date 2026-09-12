@@ -99,7 +99,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_topPanel->SetSizer( fgSizer2 );
 	m_topPanel->Layout();
 	fgSizer2->Fit( m_topPanel );
-	m_panel14 = new wxPanel( m_mainSplitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel14 = new wxPanel( m_mainSplitter, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), wxTAB_TRAVERSAL );
 	m_panel14->SetBackgroundColour( wxColour( 208, 208, 208 ) );
 	
 	wxFlexGridSizer* fgSizer15;
@@ -119,7 +119,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	fgSizer5->SetFlexibleDirection( wxBOTH );
 	fgSizer5->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
-	m_timelinePanel = new wxPanel( m_timelineBasePanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
+	m_timelinePanel = new wxPanel( m_timelineBasePanel, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
 	m_timelinePanel->SetBackgroundColour( wxColour( 255, 255, 255 ) );
 	
 	wxFlexGridSizer* fgSizer10;
@@ -135,7 +135,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	fgSizer10->Fit( m_timelinePanel );
 	fgSizer5->Add( m_timelinePanel, 1, wxEXPAND|wxLEFT|wxTOP, 5 );
 	
-	m_panel8 = new wxPanel( m_timelineBasePanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel8 = new wxPanel( m_timelineBasePanel, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), wxTAB_TRAVERSAL );
 	wxFlexGridSizer* fgSizer11;
 	fgSizer11 = new wxFlexGridSizer( 0, 1, 0, 0 );
 	fgSizer11->AddGrowableRow( 0 );
@@ -143,7 +143,12 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	fgSizer11->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
 	m_timelineZoomScrollBar = new wxScrollBar( m_panel8, wxID_ANY, wxDefaultPosition, wxSize( 26,-1 ), wxSB_VERTICAL );
+	m_timelineZoomScrollBar->Hide();
+	
 	fgSizer11->Add( m_timelineZoomScrollBar, 0, wxEXPAND|wxLEFT|wxTOP, 5 );
+	
+	
+	fgSizer11->Add( 0, 96, 1, wxEXPAND, 5 );
 	
 	
 	m_panel8->SetSizer( fgSizer11 );
@@ -168,7 +173,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_timelineDateScrollBar = new wxScrollBar( m_panel6, wxID_ANY, wxDefaultPosition, wxSize( -1,26 ), wxSB_HORIZONTAL );
 	fgSizer61->Add( m_timelineDateScrollBar, 0, wxALIGN_CENTER_VERTICAL|wxBOTTOM|wxEXPAND|wxLEFT|wxTOP, 5 );
 	
-	m_panel9 = new wxPanel( m_panel6, wxID_ANY, wxDefaultPosition, wxSize( 31,-1 ), wxTAB_TRAVERSAL );
+	m_panel9 = new wxPanel( m_panel6, wxID_ANY, wxDefaultPosition, wxSize( 0,-1 ), wxTAB_TRAVERSAL );
 	m_panel9->SetBackgroundColour( wxColour( 208, 208, 208 ) );
 	
 	fgSizer61->Add( m_panel9, 1, wxEXPAND | wxALL, 5 );
@@ -184,19 +189,42 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	
 	wxFlexGridSizer* fgSizer6;
 	fgSizer6 = new wxFlexGridSizer( 1, 0, 0, 0 );
-	fgSizer6->AddGrowableCol( 4 );
+	fgSizer6->AddGrowableCol( 7 );
 	fgSizer6->SetFlexibleDirection( wxBOTH );
 	fgSizer6->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
 	m_staticText3 = new wxStaticText( m_panel7, wxID_ANY, wxT("Date"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText3->Wrap( -1 );
-	fgSizer6->Add( m_staticText3, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+	fgSizer6->Add( m_staticText3, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+	
+	m_dateLeftStaticText = new wxStaticText( m_panel7, wxID_ANY, wxT("◄"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_dateLeftStaticText->Wrap( -1 );
+	m_dateLeftStaticText->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxEmptyString ) );
+	m_dateLeftStaticText->Hide();
+	
+	fgSizer6->Add( m_dateLeftStaticText, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+	
+	m_dateLeftButton = new wxButton( m_panel7, wxID_ANY, wxT("◄"), wxDefaultPosition, wxSize( 12,-1 ), 0|wxNO_BORDER );
+	m_dateLeftButton->SetFont( wxFont( 10, 70, 90, 90, false, wxEmptyString ) );
+	m_dateLeftButton->SetBackgroundColour( wxColour( 208, 208, 208 ) );
+	
+	fgSizer6->Add( m_dateLeftButton, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 	
 	m_dateTextCtrl = new wxTextCtrl( m_panel7, wxID_ANY, wxT("4540000000 BCE"), wxDefaultPosition, wxSize( 100,-1 ), wxTE_CENTRE|wxTE_PROCESS_ENTER );
 	fgSizer6->Add( m_dateTextCtrl, 0, wxALIGN_CENTER_VERTICAL, 5 );
 	
-	m_dateSpinBtn = new wxSpinButton( m_panel7, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
-	fgSizer6->Add( m_dateSpinBtn, 0, wxEXPAND|wxRIGHT, 5 );
+	m_dateRightButton = new wxButton( m_panel7, wxID_ANY, wxT("►"), wxDefaultPosition, wxSize( 12,-1 ), 0|wxNO_BORDER );
+	m_dateRightButton->SetFont( wxFont( 10, 70, 90, 90, false, wxEmptyString ) );
+	m_dateRightButton->SetBackgroundColour( wxColour( 208, 208, 208 ) );
+	
+	fgSizer6->Add( m_dateRightButton, 0, wxALIGN_CENTER_VERTICAL|wxRIGHT, 5 );
+	
+	m_dateRightStaticText = new wxStaticText( m_panel7, wxID_ANY, wxT("►"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_dateRightStaticText->Wrap( -1 );
+	m_dateRightStaticText->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxEmptyString ) );
+	m_dateRightStaticText->Hide();
+	
+	fgSizer6->Add( m_dateRightStaticText, 0, wxALIGN_CENTER_VERTICAL|wxRIGHT, 5 );
 	
 	m_staticText4 = new wxStaticText( m_panel7, wxID_ANY, wxT("Range"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
 	m_staticText4->Wrap( -1 );
@@ -231,7 +259,9 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	fgSizer4->SetFlexibleDirection( wxBOTH );
 	fgSizer4->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
-	m_debugTextCtrl = new wxTextCtrl( m_bottomPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_READONLY );
+	m_debugTextCtrl = new wxTextCtrl( m_bottomPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_READONLY|wxNO_BORDER );
+	m_debugTextCtrl->SetBackgroundColour( wxColour( 208, 208, 208 ) );
+	
 	fgSizer4->Add( m_debugTextCtrl, 0, wxALL|wxEXPAND, 5 );
 	
 	
@@ -281,11 +311,13 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_timelineDateScrollBar->Connect( wxEVT_SCROLL_THUMBTRACK, wxScrollEventHandler( MainForm::OnTimelineDateScrollBarScroll ), NULL, this );
 	m_timelineDateScrollBar->Connect( wxEVT_SCROLL_THUMBRELEASE, wxScrollEventHandler( MainForm::OnTimelineDateScrollBarScroll ), NULL, this );
 	m_timelineDateScrollBar->Connect( wxEVT_SCROLL_CHANGED, wxScrollEventHandler( MainForm::OnTimelineDateScrollBarScroll ), NULL, this );
+	m_dateLeftStaticText->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateLeftStaticTextLeftDown ), NULL, this );
+	m_dateLeftButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDateLeftButtonButtonClick ), NULL, this );
 	m_dateTextCtrl->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateTextCtrlLeftDown ), NULL, this );
 	m_dateTextCtrl->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainForm::OnDateTextCtrlOnText ), NULL, this );
 	m_dateTextCtrl->Connect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainForm::OnDateTextCtrlTextEnter ), NULL, this );
-	m_dateSpinBtn->Connect( wxEVT_SCROLL_LINEDOWN, wxSpinEventHandler( MainForm::OnDateSpinBtnSpinDown ), NULL, this );
-	m_dateSpinBtn->Connect( wxEVT_SCROLL_LINEUP, wxSpinEventHandler( MainForm::OnDateSpinBtnSpinUp ), NULL, this );
+	m_dateRightButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDateRightButtonButtonClick ), NULL, this );
+	m_dateRightStaticText->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateRightStaticTextLeftDown ), NULL, this );
 	m_timelineZoomSlider->Connect( wxEVT_SCROLL_TOP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
 	m_timelineZoomSlider->Connect( wxEVT_SCROLL_BOTTOM, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
 	m_timelineZoomSlider->Connect( wxEVT_SCROLL_LINEUP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
@@ -326,11 +358,13 @@ MainForm::~MainForm()
 	m_timelineDateScrollBar->Disconnect( wxEVT_SCROLL_THUMBTRACK, wxScrollEventHandler( MainForm::OnTimelineDateScrollBarScroll ), NULL, this );
 	m_timelineDateScrollBar->Disconnect( wxEVT_SCROLL_THUMBRELEASE, wxScrollEventHandler( MainForm::OnTimelineDateScrollBarScroll ), NULL, this );
 	m_timelineDateScrollBar->Disconnect( wxEVT_SCROLL_CHANGED, wxScrollEventHandler( MainForm::OnTimelineDateScrollBarScroll ), NULL, this );
+	m_dateLeftStaticText->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateLeftStaticTextLeftDown ), NULL, this );
+	m_dateLeftButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDateLeftButtonButtonClick ), NULL, this );
 	m_dateTextCtrl->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateTextCtrlLeftDown ), NULL, this );
 	m_dateTextCtrl->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainForm::OnDateTextCtrlOnText ), NULL, this );
 	m_dateTextCtrl->Disconnect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainForm::OnDateTextCtrlTextEnter ), NULL, this );
-	m_dateSpinBtn->Disconnect( wxEVT_SCROLL_LINEDOWN, wxSpinEventHandler( MainForm::OnDateSpinBtnSpinDown ), NULL, this );
-	m_dateSpinBtn->Disconnect( wxEVT_SCROLL_LINEUP, wxSpinEventHandler( MainForm::OnDateSpinBtnSpinUp ), NULL, this );
+	m_dateRightButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDateRightButtonButtonClick ), NULL, this );
+	m_dateRightStaticText->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateRightStaticTextLeftDown ), NULL, this );
 	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_TOP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
 	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_BOTTOM, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
 	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_LINEUP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );

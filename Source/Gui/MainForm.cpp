@@ -1,4 +1,4 @@
-#include "MainForm.h"
+﻿#include "MainForm.h"
 
 #include <wx/msgdlg.h>
 #include <wx/spinctrl.h>
@@ -23,6 +23,7 @@ SVS_WARNING_DISABLE(4189) // local variable is initialized but not referenced
 #ifdef _DEBUG
 //#define USE_DEBUG_DATA
 //#define DEBUG_PID
+#define DRAW_DEBUG_TEXT
 #endif
 
 //#define BLOCK_AMBIENT	// Use these so that the graph doesnt get screwed up while they arent working. Probably no longer required since being replaced by cpProxy
@@ -32,7 +33,9 @@ SVS_WARNING_DISABLE(4100) // Unreferenced formal parameter in boost
 
 const char*				l_settingsFilename				= "settings.txt";
 //const char*				l_historyFilename					= "Data/SampleHistory.csv";
-const char*				l_historyFilename					= "Data/1000_significant_history_events.csv";
+//const char*				l_historyFilename					= "Data/1000_significant_history_events.csv";
+//const char*				l_historyFilename					= "Data/75_significant_history_events.csv";
+const char*				l_historyFilename					= "Data/x_significant_history_events.csv";
 static const int		l_guiTimerInterval				= 300;
 static const int		l_renderTimerInterval			= 40;
 static const int		l_imageUpdateThreadInterval	= 300;
@@ -47,6 +50,16 @@ MainForm::MainForm(wxWindow* parent, AppData* appData) :
 {
 //	SetIcon(wxICON(ISENTRYDISKUSAGECONFIGAPP_LOGO));
    Initialise();
+
+	//double ratio = 0.0;
+	//double linear_value, log_value, exp_value;
+	//for (int i=0; i<=100; i++)
+	//{
+	//	linear_value = SVS::Math::LinearInterpolate(10.0, 100.0, ratio);
+	//	log_value = SVS::Math::LogarithmicInterpolate(10.0, 100.0, ratio);
+	//	exp_value = SVS::Math::ExponentialInterpolate(10.0, 100.0, ratio);
+	//	ratio += 0.01;
+	//}
 }
 
 MainForm::~MainForm()
@@ -128,12 +141,23 @@ void MainForm::Initialise()
 
 	m_dateTextCtrl->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 
+//	m_dateLeftStaticText->SetLabel(wxString::FromUTF8(u8"◄")); // \u25C4
+//	m_dateRightStaticText->SetLabel(wxString::FromUTF8(u8"►")); // \u25BA
+	m_dateLeftButton->SetLabel(wxString::FromUTF8(u8"◄")); // \u25C4
+	m_dateRightButton->SetLabel(wxString::FromUTF8(u8"►")); // \u25BA
+
 	m_timelineDateScrollBar->SetScrollbar(5000, 1, 10000, 10, true);
-	m_timelineZoomScrollBar->SetScrollbar(1, 1, 10000, 10, true);
+	//m_timelineZoomScrollBar->SetScrollbar(1, 1, 10000, 10, true); // no longer visible
 
 	//m_timelineZoomSlider->Set
-	std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * 6.0)) + " years";
-	m_zoomTextCtrl->SetValue(str);
+//	std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * 6.0)) + " years";
+	//int w, h;
+	//double aspect_ratio;
+	//m_timelineCanvas->GetSize(&w, &h);
+	//aspect_ratio = (double)w / (double)h;
+	//std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * aspect_ratio * 2.46)) + " years";
+	//m_zoomTextCtrl->SetValue(str);
+	m_appData->updateDateRangeText = true;
 
 	SetTimelineDateScrollBarPositionFromDate(0.0);
 
@@ -225,9 +249,15 @@ void MainForm::OnGuiTimer(wxTimerEvent& event)
 {
 	if (m_timelineCanvas != nullptr)
 	{
-		m_debugTextCtrl->SetValue(m_timelineCanvas->GetDebugString());
+#ifdef DRAW_DEBUG_TEXT
+		std::string str = m_timelineCanvas->GetDebugString();
+		str += std::string(" - Render Delta: ") + std::to_string(m_renderDeltaTimeMSecs.GetValue());
+		m_debugTextCtrl->SetValue(str);
+#endif
 
 		UpdateDateText();
+		UpdateDateRangeText();
+		UpdateDateScrollbar();
 	}
 
 	event.Skip();
@@ -235,8 +265,15 @@ void MainForm::OnGuiTimer(wxTimerEvent& event)
 
 void MainForm::OnRenderTickTimer(wxTimerEvent& event)
 {
-//	int deltaTimeMSecs = event.GetInterval();
-		
+	{
+//		m_renderDeltaTimeMSecs = event.GetInterval();
+		wxLongLong currentTimeMsecs = wxGetLocalTimeMillis();
+		m_renderDeltaTimeMSecs = currentTimeMsecs - m_lastRenderTimeMsecs;
+        
+		// milliseconds since last trigger
+		m_lastRenderTimeMsecs = currentTimeMsecs;		
+	}
+
 	if (m_timelineCanvas != nullptr)
 	{
 		m_timelineCanvas->Refresh();	// Mark as requiring a redraw
@@ -266,6 +303,8 @@ void MainForm::OnDateTextCtrlTextEnter(wxCommandEvent& event)
 	m_updating_date_text		= true;
 	m_image_requires_update	= true;
 
+	SetTimelineDateScrollBarPositionFromDate((double)date);
+
 	event.Skip();
 }
 
@@ -286,6 +325,28 @@ void MainForm::UpdateDateText()
 		std::string str = TimelineGLCanvas::DateToString(date);
 
 		m_dateTextCtrl->SetValue(str);
+	}
+}
+
+void MainForm::UpdateDateRangeText()
+{
+	if (m_appData->updateDateRangeText == true)
+	{
+		double range = m_timelineCanvas->GetVisibleDateRange();
+		std::string str = std::to_string(std::lround(range)) + " years";
+		m_zoomTextCtrl->SetValue(str);
+		SetZoomSliderPosition();
+		m_appData->updateDateRangeText = false;
+	}
+}
+
+void MainForm::UpdateDateScrollbar()
+{
+	if (m_appData->updateDateScrollbar == true)
+	{
+		SetTimelineDateScrollBarPositionFromDate(m_timelineCanvas->GetDate());
+		m_image_requires_update = true;
+		m_appData->updateDateScrollbar = false;
 	}
 }
 
@@ -384,7 +445,18 @@ void MainForm::UpdateImage()
 
 void MainForm::OnMainSplitterSplitterSashPosChanged(wxSplitterEvent& event)
 {
-	m_image_requires_update = true;
+	m_image_requires_update	= true;
+	m_oldImageId				= -1;	// ensure a resize occurs
+
+	// 1845 / 250 => 18 years => x==2.45
+	// 1845 / 570 => 8 years => x==2.47
+//	std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * 6.0)) + " years";
+	//int w, h;
+	//double aspect_ratio;
+	//m_timelineCanvas->GetSize(&w, &h);
+	//aspect_ratio = ((double)w / (double)h) / 7.38;
+//	m_zoomTextCtrl->Refresh();
+	m_appData->updateDateRangeText = true;
 
 	event.Skip();
 }
@@ -408,6 +480,9 @@ void MainForm::OnTimelineDateScrollBarScroll(wxScrollEvent& event)
 
 void MainForm::SetTimelineDateScrollBarPositionFromDate(double date)
 {
+	if (m_appData->eventList.size() == 0)
+		return;
+
 	double percentage = (date - m_appData->eventList.begin()->startDate) / (m_appData->latestDate - m_appData->eventList.begin()->startDate);
 	double pos = SVS::Math::LinearInterpolate(0, m_timelineDateScrollBar->GetRange(), percentage);
 	m_timelineDateScrollBar->SetThumbPosition((int)pos);
@@ -420,7 +495,24 @@ void MainForm::OnTimelineZoomScrollBarScroll(wxScrollEvent& event)
 
 	m_timelineCanvas->SetZoom(percentage);
 
+//	std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * 6.0)) + " years";
+	//int w, h;
+	//double aspect_ratio;
+	//m_timelineCanvas->GetSize(&w, &h);
+	//aspect_ratio = (double)w / (double)h;
+	//std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * aspect_ratio * 2.46)) + " years";
+	//m_zoomTextCtrl->SetValue(str);
+	m_appData->updateDateRangeText = true;
+
 	event.Skip();
+}
+
+void MainForm::SetZoomSliderPosition()
+{
+	double percentage = m_timelineCanvas->GetZoomPercentage();
+	int pos = std::lround(SVS::MiscMath::LinearInterpolate(m_timelineZoomSlider->GetMin(), m_timelineZoomSlider->GetMax(), percentage));
+
+	m_timelineZoomSlider->SetValue(pos);
 }
 
 void MainForm::OnTimelineZoomSliderScroll(wxScrollEvent& event)
@@ -430,8 +522,15 @@ void MainForm::OnTimelineZoomSliderScroll(wxScrollEvent& event)
 
 	m_timelineCanvas->SetZoom(percentage);
 
-	std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * 6.0)) + " years";
-	m_zoomTextCtrl->SetValue(str);
+//	std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * 6.0)) + " years";
+
+	//int w, h;
+	//double aspect_ratio;
+	//m_timelineCanvas->GetSize(&w, &h);
+	//aspect_ratio = (double)w / (double)h;
+	//std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * aspect_ratio * 2.46)) + " years";
+	//m_zoomTextCtrl->SetValue(str);
+	m_appData->updateDateRangeText = true;
 
 	event.Skip();
 }
@@ -469,21 +568,67 @@ void MainForm::OnMainFormKeyDown(wxKeyEvent& event)
 	event.Skip();
 }
 
-void MainForm::OnDateSpinBtnSpinDown(wxSpinEvent& event)
+//void MainForm::OnDateSpinBtnSpinDown(wxSpinEvent& event)
+//{
+//	m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() - 1.0);
+//
+//	UpdateDateText();
+//	m_appData->updateDateScrollbar = true;
+//	m_image_requires_update = true;
+//
+//	event.Skip();
+//}
+//
+//void MainForm::OnDateSpinBtnSpinUp(wxSpinEvent& event)
+//{
+//	m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() + 1.0);
+//
+//	UpdateDateText();
+//	m_appData->updateDateScrollbar = true;
+//	m_image_requires_update = true;
+//
+//	event.Skip();
+//}
+
+//void MainForm::OnDateLeftStaticTextLeftDown(wxMouseEvent& event)
+//{
+//	m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() - 1.0);
+//
+//	UpdateDateText();
+//	m_appData->updateDateScrollbar = true;
+//	m_image_requires_update = true;
+//
+//	event.Skip();
+//}
+//
+//void MainForm::OnDateRightStaticTextLeftDown(wxMouseEvent& event)
+//{
+//	m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() + 1.0);
+//
+//	UpdateDateText();
+//	m_appData->updateDateScrollbar = true;
+//	m_image_requires_update = true;
+//
+//	event.Skip();
+//}
+
+void MainForm::OnDateLeftButtonButtonClick(wxCommandEvent& event)
 {
 	m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() - 1.0);
 
 	UpdateDateText();
+	m_appData->updateDateScrollbar = true;
 	m_image_requires_update = true;
 
 	event.Skip();
 }
 
-void MainForm::OnDateSpinBtnSpinUp(wxSpinEvent& event)
+void MainForm::OnDateRightButtonButtonClick(wxCommandEvent& event)
 {
 	m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() + 1.0);
 
 	UpdateDateText();
+	m_appData->updateDateScrollbar = true;
 	m_image_requires_update = true;
 
 	event.Skip();
@@ -537,6 +682,9 @@ bool MainForm::LoadHistoryFile(std::string filename)
 			boost::trim_if(str, boost::is_any_of("\"'"));	// Strip surrounding quotes
 		}
 
+		if (strs.size() < 6)
+			continue;	// badly formatted (or blank) line
+
 		// skip "comment" lines (lines that begin with a #)
 		if ((strs[0].size() > 1) && (strs[0][0] == '#'))
 			continue;
@@ -576,71 +724,5 @@ bool MainForm::LoadHistoryFile(std::string filename)
 	m_appData->SetLatestDate();
 
 	return true;
-/*
-	boost::mutex::scoped_lock lock(*kdTreeMutex);
-
-	// Temporarily use a local vector to build the array so that we don't have to work
-	// out its size until all the data is loaded.
-
-	vector<GeoTransitRecord> tempFrames;
-	
-	char line[2048];
-	FILE *fp = fopen(filename.c_str(), "r");
-
-	if(fp == NULL) {
-		fprintf(stderr, "Can't open %s for reading\n", filename);
-		return false;
-	}
-	
-	
-	
-	// Skip through the header crap.
-	for(int i=0; i < 14; i++) {
-		if(fgets(line, sizeof(line), fp) == NULL) {
-			perror("fgets");
-			return false;
-		}
-		
-	}
-
-	int count = 0;
-	if(startIndex > 0) {
-		while(fgets(line, sizeof(line), fp)) {
-			count++;
-			if(count == startIndex) {
-				break;
-			}
-		}
-	}
-
-	while(fgets(line, sizeof(line), fp)) {
-
-		vector <string> strs;
-		boost::split(strs, line, boost::is_any_of(","));
-
-		GeoTransitRecord frame;
-		strcpy(frame.image_file,strs[2].c_str());
-		frame.lat = atof(strs[13].c_str());
-		frame.lon = atof(strs[14].c_str());
-		frame.yaw = atof(strs[15].c_str());
-		frame.pitch = atof(strs[15].c_str());
-		frame.roll = atof(strs[15].c_str());		
-		frame.vel_north = atof(strs[24].c_str());
-		frame.vel_east = atof(strs[25].c_str());
-		
-		
-		sscanf(strs[27].c_str(),"%llu",&(frame.timestamp));
-
-
-		tempFrames.push_back(frame);
-		
-		count++;
-	
-		if( (endIndex > 0) && (count > endIndex) )
-		{
-			break;
-		}
-	}
-*/
 }
 

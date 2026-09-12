@@ -19,7 +19,7 @@
 #include <GL/glu.h>
 #endif
 
-#define DRAW_DEBUG_AXIS
+//#define DRAW_DEBUG_AXIS
 //#define DISPLAY_COMMON_ERA
 
 SVS_WARNING_DISABLE(4100) // Unreferenced formal parameter
@@ -30,6 +30,7 @@ EVT_SIZE(TimelineGLCanvas::OnSize)
 EVT_PAINT(TimelineGLCanvas::OnPaint)
 EVT_ERASE_BACKGROUND(TimelineGLCanvas::OnEraseBackground)
 //EVT_MOUSE_EVENTS(TimelineGLCanvas::OnMouse)
+EVT_MOUSEWHEEL(TimelineGLCanvas::OnMouseWheel)
 EVT_LEFT_DOWN(TimelineGLCanvas::OnLeftDown)
 EVT_KEY_DOWN(TimelineGLCanvas::OnKeyDown)
 EVT_KEY_UP(TimelineGLCanvas::OnKeyUp)
@@ -371,8 +372,9 @@ void TimelineGLCanvas::Render()
 	//glGetDoublev(GL_PROJECTION_MATRIX, m_projection);
 
 	// Set debug string
-	m_debugString = std::string("Camera Pos: ") + boost::str(boost::format("%.1lf, %.1lf, %.1lf") % camera_position.x % camera_position.y % camera_position.z).c_str();
-	m_debugString += std::string(" | Mouse X, Y: ") + boost::str(boost::format("%.3lf, %.3lf") % m_clickPosX % m_clickPosY).c_str();
+	m_debugString = std::string("DEBUGGING");
+	m_debugString += std::string(" - Camera Pos: ") + boost::str(boost::format("%.1lf, %.1lf, %.1lf") % camera_position.x % camera_position.y % camera_position.z).c_str();
+	m_debugString += std::string(" - Mouse X, Y: ") + boost::str(boost::format("%.3lf, %.3lf") % m_clickPosX % m_clickPosY).c_str();
 
 	// Apply world translation
 	//glTranslated(l_worldTranslation.x, l_worldTranslation.y, l_worldTranslation.z);
@@ -443,7 +445,7 @@ void TimelineGLCanvas::CheckForSelection()
 			 SVS::Math::InRange(m_clickPosY, (double)y2_pos, (double)y1_pos))
 		{
 			m_selectedId = iter->id;
-			break;
+//			break;	// the break prevents finding the newest item. searching backwards requires reversing the spacing etc. which IS doable...
 		}
 
 		line_number++;
@@ -674,6 +676,8 @@ void TimelineGLCanvas::OnSize(wxSizeEvent& event)
 	// See the cube sample for that case that multiple canvases are made current with one context.
 	ResetProjectionMode();
 
+	DetermineVisibleDateRange();
+
 	event.Skip();
 }
 
@@ -696,6 +700,24 @@ void TimelineGLCanvas::SetZoom(double percentage)
 {
 	double z = SVS::MiscMath::LinearInterpolate(l_nearClipPlane, l_farClipPlane, percentage);
 	m_cameraMatrix.SetPositionZ(z);
+
+	DetermineVisibleDateRange();
+}
+
+double TimelineGLCanvas::GetZoomPercentage()
+{
+	return m_cameraMatrix.GetPositionZ() / (l_farClipPlane - l_nearClipPlane);
+}
+
+void TimelineGLCanvas::DetermineVisibleDateRange()
+{
+	int w, h;
+	double aspect_ratio;
+	GetSize(&w, &h);
+	//aspect_ratio = ((double)w / (double)h) / 7.38;
+	//m_visibleDateRange = GetZoom() * aspect_ratio * 6.0;
+	aspect_ratio = (double)w / (double)h;
+	m_visibleDateRange = GetZoom() * aspect_ratio * 0.813;
 }
 
 void TimelineGLCanvas::OnKeyDown(wxKeyEvent& event)
@@ -710,16 +732,23 @@ void TimelineGLCanvas::OnKeyDown(wxKeyEvent& event)
 	{
 		case 'A':
 			SetDate(GetDate() - step);
-//			m_dateTextCtrl->SetValue(boost::str(boost::format("%.2lfº") % wbd.pitch.AsDouble()).c_str());
+			// TBD. Should also update date scrollbar (m_timelineDateScrollBar) to reflect this
+			m_appData->updateDateScrollbar = true;
 			break;
 		case 'D':
 			SetDate(GetDate() + step);
+			// TBD. Should also update date scrollbar (m_timelineDateScrollBar) to reflect this
+			m_appData->updateDateScrollbar = true;
 			break;
 		case 'W':
 			m_cameraMatrix.SetPositionZ((std::max)(l_nearClipPlane, m_cameraMatrix.GetPositionZ() - step));
+			DetermineVisibleDateRange();
+			m_appData->updateDateRangeText = true;
 			break;
 		case 'S':
 			m_cameraMatrix.SetPositionZ((std::min)(l_farClipPlane, m_cameraMatrix.GetPositionZ() + step));
+			DetermineVisibleDateRange();
+			m_appData->updateDateRangeText = true;
 			break;
 	//	case 306:	m_cameraSpeedScale = 2.0;														break;	// Shift key
 	//	case WXK_ESCAPE:
@@ -794,6 +823,26 @@ void TimelineGLCanvas::OnKeyUp(wxKeyEvent& event)
 //
 //	event.Skip();
 //}
+
+void TimelineGLCanvas::OnMouseWheel(wxMouseEvent& event)
+{
+	float step = (event.ShiftDown() == true) ? 10.0f : 1.0f;
+
+	if (event.GetWheelRotation() > 0)
+	{
+		m_cameraMatrix.SetPositionZ((std::max)(l_nearClipPlane, m_cameraMatrix.GetPositionZ() - step));
+		DetermineVisibleDateRange();
+		m_appData->updateDateRangeText = true;
+	}
+	else
+	{
+		m_cameraMatrix.SetPositionZ((std::min)(l_farClipPlane, m_cameraMatrix.GetPositionZ() + step));
+		DetermineVisibleDateRange();
+		m_appData->updateDateRangeText = true;
+	}
+
+	event.Skip();
+}
 
 void TimelineGLCanvas::OnLeftDown(wxMouseEvent& event)
 {

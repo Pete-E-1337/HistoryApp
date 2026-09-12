@@ -24,12 +24,11 @@
 #include <wx/icon.h>
 #include <wx/statbmp.h>
 #include <wx/scrolbar.h>
+#include <wx/button.h>
 #include <wx/textctrl.h>
 #include <wx/valtext.h>
-#include <wx/spinbutt.h>
 #include <wx/slider.h>
 #include <wx/splitter.h>
-#include <wx/button.h>
 #include <wx/timer.h>
 #include <wx/menu.h>
 #include <wx/frame.h>
@@ -68,8 +67,11 @@ namespace History
 			wxPanel* m_panel9;
 			wxPanel* m_panel7;
 			wxStaticText* m_staticText3;
+			wxStaticText* m_dateLeftStaticText;
+			wxButton* m_dateLeftButton;
 			wxTextCtrl* m_dateTextCtrl;
-			wxSpinButton* m_dateSpinBtn;
+			wxButton* m_dateRightButton;
+			wxStaticText* m_dateRightStaticText;
 			wxStaticText* m_staticText4;
 			wxSlider* m_timelineZoomSlider;
 			wxTextCtrl* m_zoomTextCtrl;
@@ -88,11 +90,13 @@ namespace History
 			virtual void OnBitmapLeftDown( wxMouseEvent& event ) { event.Skip(); }
 			virtual void OnTimelineZoomScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }
 			virtual void OnTimelineDateScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }
+			virtual void OnDateLeftStaticTextLeftDown( wxMouseEvent& event ) { event.Skip(); }
+			virtual void OnDateLeftButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnDateTextCtrlLeftDown( wxMouseEvent& event ) { event.Skip(); }
 			virtual void OnDateTextCtrlOnText( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnDateTextCtrlTextEnter( wxCommandEvent& event ) { event.Skip(); }
-			virtual void OnDateSpinBtnSpinDown( wxSpinEvent& event ) { event.Skip(); }
-			virtual void OnDateSpinBtnSpinUp( wxSpinEvent& event ) { event.Skip(); }
+			virtual void OnDateRightButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnDateRightStaticTextLeftDown( wxMouseEvent& event ) { event.Skip(); }
 			virtual void OnTimelineZoomSliderScroll( wxScrollEvent& event ) { event.Skip(); }
 			virtual void OnExitButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnGuiTimer( wxTimerEvent& event ) { event.Skip(); }

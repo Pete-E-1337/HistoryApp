@@ -55,10 +55,13 @@ public:
 	void SetDate(double date);
 	void SetZoom(double percentage);
 	double GetZoom() { return m_cameraMatrix.GetPositionZ(); }
+	double GetZoomPercentage();
 	double GetDate();
+	double GetVisibleDateRange() { return m_visibleDateRange; }
+	void DetermineVisibleDateRange();
 	static std::string DateToString(double date);
 
-	const std::string& GetDebugString() { return m_debugString; }
+	const std::string GetDebugString() { return m_debugString; }
 protected:
 	void OnPaint(wxPaintEvent& event);
 	void OnSize(wxSizeEvent& event);
@@ -67,6 +70,7 @@ protected:
 	void OnKeyUp(wxKeyEvent& event);
 	//void OnMouse(wxMouseEvent& event);
 	void OnLeftDown(wxMouseEvent& event);
+	void OnMouseWheel(wxMouseEvent& event);
 
 private:
 	void InitGL();
@@ -158,6 +162,7 @@ private:
 	//double							m_upperDisplayDate		= 0.0;
 	double							m_clickPosX					= 0.0;
 	double							m_clickPosY					= 0.0;
+	double							m_visibleDateRange		= 0.0;
 
 
 	wxDECLARE_NO_COPY_CLASS(TimelineGLCanvas);

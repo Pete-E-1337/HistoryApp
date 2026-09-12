@@ -33,6 +33,8 @@ public:
 	TimeLineEventList			imageList;
 	double						latestDate;
 	bool							rendering				= true;
+	bool							updateDateRangeText	= true;
+	bool							updateDateScrollbar	= false;
 };
 
 #endif // APPDATA_H

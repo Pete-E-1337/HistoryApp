@@ -28,10 +28,14 @@ public:
 	virtual void OnTimelineZoomScrollBarScroll(wxScrollEvent& event) override;
 	virtual void OnTimelineZoomSliderScroll(wxScrollEvent& event) override;
 	virtual void OnMainFormKeyDown(wxKeyEvent& event) override;
-	virtual void OnDateSpinBtnSpinDown(wxSpinEvent& event) override;
-	virtual void OnDateSpinBtnSpinUp(wxSpinEvent& event) override;
+	//virtual void OnDateSpinBtnSpinDown(wxSpinEvent& event) override;
+	//virtual void OnDateSpinBtnSpinUp(wxSpinEvent& event) override;
 	virtual void OnBitmapLeftDown(wxMouseEvent& event) override;
 	virtual void OnMainSplitterSplitterSashPosChanged(wxSplitterEvent& event) override;
+	//virtual void OnDateLeftStaticTextLeftDown(wxMouseEvent& event) override;
+	//virtual void OnDateRightStaticTextLeftDown(wxMouseEvent& event) override;
+	virtual void OnDateLeftButtonButtonClick(wxCommandEvent& event) override;
+	virtual void OnDateRightButtonButtonClick(wxCommandEvent& event) override;
 
 private:
    void Initialise();
@@ -45,7 +49,10 @@ private:
 //	std::string ToString(double num, int decimalPlaces);
 	void SetAppData(AppData* appData);
 	void SetTimelineDateScrollBarPositionFromDate(double date);
+	void SetZoomSliderPosition();
 	void UpdateDateText();
+	void UpdateDateRangeText();
+	void UpdateDateScrollbar();
 	void UpdateImage();
 	void ImageUpdateThread(void);
 	bool LoadHistoryFile(std::string filename);
@@ -59,12 +66,14 @@ private:
 //	FILE*								m_report = nullptr;
 	TimelineGLCanvas*				m_timelineCanvas			= nullptr;
 	bool								m_firstTimeShown			= true;
-	bool								m_updating_date_text		= true;
+	bool								m_updating_date_text		= true;	// halts program updates while being manually entered by the user
 	bool								m_image_requires_update	= true;
 //	double							m_old_date					= std::numeric_limits<double>::lowest();
 	int								m_oldImageId				= -1;
 	bool								m_runImageUpdateThread	= false;
 	boost::thread*					m_imageUpdateThread		= nullptr;
+	wxLongLong						m_lastRenderTimeMsecs	= 0;
+	wxLongLong						m_renderDeltaTimeMSecs	= 0;// milliseconds since last trigger
 };
 
 #endif // MAINFORM_H
