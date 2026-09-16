@@ -341,9 +341,10 @@ void MainForm::UpdateDateRangeText()
 {
 	if (m_appData->updateDateRangeText == true)
 	{
+		m_appData->updateDateRangeText = false;
+
 		SetDateRangeText();
 		SetZoomSliderPosition();
-		m_appData->updateDateRangeText = false;
 	}
 }
 
@@ -358,9 +359,10 @@ void MainForm::UpdateDateScrollbar()
 {
 	if (m_appData->updateDateScrollbar == true)
 	{
+		m_appData->updateDateScrollbar = false;
+
 		SetTimelineDateScrollBarPositionFromDate(m_timelineCanvas->GetDate());
 		m_image_requires_update = true;
-		m_appData->updateDateScrollbar = false;
 	}
 }
 
