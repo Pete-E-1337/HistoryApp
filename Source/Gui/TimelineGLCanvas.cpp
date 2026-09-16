@@ -4,6 +4,8 @@
 
 #include "TimelineGLCanvas.h"
 #include "wx/wfstream.h"
+#include <wx/utils.h>
+#include <wx/uri.h>
 //#if wxUSE_ZLIB
 //#include "wx/zstream.h"
 //#endif
@@ -30,8 +32,10 @@ EVT_SIZE(TimelineGLCanvas::OnSize)
 EVT_PAINT(TimelineGLCanvas::OnPaint)
 EVT_ERASE_BACKGROUND(TimelineGLCanvas::OnEraseBackground)
 //EVT_MOUSE_EVENTS(TimelineGLCanvas::OnMouse)
+EVT_MOTION(TimelineGLCanvas::OnMouseMove)
 EVT_MOUSEWHEEL(TimelineGLCanvas::OnMouseWheel)
 EVT_LEFT_DOWN(TimelineGLCanvas::OnLeftDown)
+EVT_LEFT_DCLICK(TimelineGLCanvas::OnLeftDoubleClick)
 EVT_KEY_DOWN(TimelineGLCanvas::OnKeyDown)
 EVT_KEY_UP(TimelineGLCanvas::OnKeyUp)
 //EVT_JOYSTICK_EVENTS(TimelineGLCanvas::OnJoystickEvent)
@@ -428,7 +432,7 @@ void TimelineGLCanvas::Render()
 	SwapBuffers();
 }
 
-void TimelineGLCanvas::CheckForSelection()
+int TimelineGLCanvas::CheckForSelection()
 {
 	float		y_spacing			= l_timeline_y_gap_event * m_cameraMatrix.GetPositionZ();
 	float		events_start_y		= (l_timeline_y_total_height / 2.0) * m_cameraMatrix.GetPositionZ();
@@ -437,14 +441,17 @@ void TimelineGLCanvas::CheckForSelection()
 	float		y2_pos				= y1_pos - text_height;
 
 	int line_number				= 0;
-	m_selectedId					= -1;
+	int selectedIindex			= -1;
+	int i								= 0;
+//	m_selectedId					= -1;
 
 	for (TimeLineEventListIter iter = m_appData->eventList.begin(); iter != m_appData->eventList.end(); iter++)
 	{
 		if (SVS::Math::InRange(m_clickPosX, iter->startDate, iter->endDate) &&
 			 SVS::Math::InRange(m_clickPosY, (double)y2_pos, (double)y1_pos))
 		{
-			m_selectedId = iter->id;
+//			m_selectedId = iter->id;
+			selectedIindex = i;
 //			break;	// the break prevents finding the newest item. searching backwards requires reversing the spacing etc. which IS doable...
 		}
 
@@ -461,7 +468,11 @@ void TimelineGLCanvas::CheckForSelection()
 			y1_pos -= y_spacing;
 			y2_pos -= y_spacing;
 		}
+
+		i++;
 	}
+
+	return selectedIindex;
 }
 
 void TimelineGLCanvas::DrawTimelineEventDataList()
@@ -480,8 +491,11 @@ void TimelineGLCanvas::DrawTimelineEventDataList()
 
 	DrawTimelineBackground(date_font_scale, events_start_y, events_end_y);
 
-	int line_number	= 0;
-	bool selected		= false;
+	// Draw events
+
+	int	line_number	= 0;
+	int	i				= 0;
+	bool	selected		= false;
 
 	for (TimeLineEventListIter iter = m_appData->eventList.begin(); iter != m_appData->eventList.end(); iter++)
 	{
@@ -489,7 +503,8 @@ void TimelineGLCanvas::DrawTimelineEventDataList()
 
 		//selected = SVS::Math::InRange(m_clickPosX, iter->startDate, iter->endDate) &&
 		//			  SVS::Math::InRange(m_clickPosY, (double)y2_pos, (double)y1_pos);
-		selected = (iter->id == m_selectedId);
+//		selected = (iter->id == m_selectedId);
+		selected = (i == m_selectedIndex);
 
 		DrawTimelineEvent(*iter, selected, font_scale, y1_pos, y2_pos, color.r, color.g, color.b);
 
@@ -511,6 +526,8 @@ void TimelineGLCanvas::DrawTimelineEventDataList()
 			y1_pos -= y_spacing;
 			y2_pos -= y_spacing;
 		}
+
+		i++;
 	}
 }
 
@@ -528,12 +545,12 @@ void TimelineGLCanvas::DrawTimelineBackground(float font_scale, float events_sta
 	//	OpenGLHelper::DrawLine(x1, yy, x2, yy, 255, 0, 0);
 	//}
 
-	// Horizontal date axis
+	// Draw horizontal date axis
 	{
 		OpenGLHelper::DrawLine(x1, date_axis_y, x2, date_axis_y, 0, 0, 0);
 	}
 
-	// Dates
+	// Draw dates
 	{
 		float	x_spacing	= 1.0;
 		float	tick_height	= l_timeline_y_date_axis_tick_height * m_cameraMatrix.GetPositionZ();
@@ -568,6 +585,7 @@ void TimelineGLCanvas::DrawTimelineBackground(float font_scale, float events_sta
 		float		tick_y1	= date_axis_y;
 		float		tick_y2	= date_axis_y - tick_height;
 		float		text_y	= tick_y2 - (l_timeline_y_gap_date_axis_text * m_cameraMatrix.GetPositionZ());
+
 		std::string date_str;
 
 		while (x < x2)
@@ -592,9 +610,19 @@ void TimelineGLCanvas::DrawTimelineBackground(float font_scale, float events_sta
 			x += x_spacing;
 		}
 
-		// Centre date
+		// Draw vertical centre date line
 
 		OpenGLHelper::DrawLine(m_cameraMatrix.GetPositionX(), tick_y1, m_cameraMatrix.GetPositionX(), events_start_y, 255, 0, 0, 1.0f, 1, 0x0F0F);	// Red, dashed
+	}
+
+	// Draw image area indicators
+	{
+		float image_indicator_y	= events_end_y - ((l_timeline_y_gap_date_axis - 0.003) * m_cameraMatrix.GetPositionZ());
+
+		for (TimeLineEventListIter iter = m_appData->imageList.begin(); iter != m_appData->imageList.end(); iter++)
+		{
+			OpenGLHelper::DrawLine(iter->startDate, image_indicator_y, iter->endDate, image_indicator_y, 0, 110, 255, 3.0);
+		}
 	}
 }
 
@@ -700,8 +728,21 @@ void TimelineGLCanvas::SetZoom(double percentage)
 {
 	double z = SVS::MiscMath::LinearInterpolate(l_nearClipPlane, l_farClipPlane, percentage);
 	m_cameraMatrix.SetPositionZ(z);
-
 	DetermineVisibleDateRange();
+}
+
+void TimelineGLCanvas::ZoomIn(double step)
+{
+	m_cameraMatrix.SetPositionZ((std::max)(l_nearClipPlane, m_cameraMatrix.GetPositionZ() - step));
+	DetermineVisibleDateRange();
+	m_appData->updateDateRangeText = true;
+}
+
+void TimelineGLCanvas::ZoomOut(double step)
+{
+	m_cameraMatrix.SetPositionZ((std::min)(l_farClipPlane, m_cameraMatrix.GetPositionZ() + step));
+	DetermineVisibleDateRange();
+	m_appData->updateDateRangeText = true;
 }
 
 double TimelineGLCanvas::GetZoomPercentage()
@@ -724,6 +765,7 @@ void TimelineGLCanvas::OnKeyDown(wxKeyEvent& event)
 {
 	// https://theasciicode.com.ar/
 
+/*
 	float step = (event.ShiftDown() == true) ? 10.0f : 1.0f;
 
 	int keyCode = event.GetKeyCode();
@@ -732,29 +774,30 @@ void TimelineGLCanvas::OnKeyDown(wxKeyEvent& event)
 	{
 		case 'A':
 			SetDate(GetDate() - step);
-			// TBD. Should also update date scrollbar (m_timelineDateScrollBar) to reflect this
 			m_appData->updateDateScrollbar = true;
 			break;
 		case 'D':
 			SetDate(GetDate() + step);
-			// TBD. Should also update date scrollbar (m_timelineDateScrollBar) to reflect this
 			m_appData->updateDateScrollbar = true;
 			break;
 		case 'W':
-			m_cameraMatrix.SetPositionZ((std::max)(l_nearClipPlane, m_cameraMatrix.GetPositionZ() - step));
-			DetermineVisibleDateRange();
-			m_appData->updateDateRangeText = true;
+			//m_cameraMatrix.SetPositionZ((std::max)(l_nearClipPlane, m_cameraMatrix.GetPositionZ() - step));
+			//DetermineVisibleDateRange();
+			//m_appData->updateDateRangeText = true;
+			ZoomIn(step);
 			break;
 		case 'S':
-			m_cameraMatrix.SetPositionZ((std::min)(l_farClipPlane, m_cameraMatrix.GetPositionZ() + step));
-			DetermineVisibleDateRange();
-			m_appData->updateDateRangeText = true;
+			//m_cameraMatrix.SetPositionZ((std::min)(l_farClipPlane, m_cameraMatrix.GetPositionZ() + step));
+			//DetermineVisibleDateRange();
+			//m_appData->updateDateRangeText = true;
+			ZoomOut(step);
 			break;
 	//	case 306:	m_cameraSpeedScale = 2.0;														break;	// Shift key
 	//	case WXK_ESCAPE:
 	//	case 'V':	m_inputData.keyData.exitKeyDown = true;									break;
 		default: break;
 	}
+*/
 
 	event.Skip();
 }
@@ -830,15 +873,52 @@ void TimelineGLCanvas::OnMouseWheel(wxMouseEvent& event)
 
 	if (event.GetWheelRotation() > 0)
 	{
-		m_cameraMatrix.SetPositionZ((std::max)(l_nearClipPlane, m_cameraMatrix.GetPositionZ() - step));
-		DetermineVisibleDateRange();
-		m_appData->updateDateRangeText = true;
+		//m_cameraMatrix.SetPositionZ((std::max)(l_nearClipPlane, m_cameraMatrix.GetPositionZ() - step));
+		//DetermineVisibleDateRange();
+		//m_appData->updateDateRangeText = true;
+		ZoomIn(step);
 	}
 	else
 	{
-		m_cameraMatrix.SetPositionZ((std::min)(l_farClipPlane, m_cameraMatrix.GetPositionZ() + step));
-		DetermineVisibleDateRange();
-		m_appData->updateDateRangeText = true;
+		//m_cameraMatrix.SetPositionZ((std::min)(l_farClipPlane, m_cameraMatrix.GetPositionZ() + step));
+		//DetermineVisibleDateRange();
+		//m_appData->updateDateRangeText = true;
+		ZoomOut(step);
+	}
+
+	event.Skip();
+}
+
+void TimelineGLCanvas::SetSelectedIndex(int index)
+{
+	if (SVS::Math::InRange(index, 0, (int)m_appData->eventList.size()) == false)
+		return;
+
+	m_selectedIndex = index;
+	m_appData->updateSelection = true;
+}
+
+void TimelineGLCanvas::OnMouseMove(wxMouseEvent& event)
+{
+	if (event.Dragging() == true)
+	{
+		wxPoint currentPos = event.GetPosition();
+            
+		// Calculate how far the mouse moved
+		int diffX = currentPos.x - m_lastDragPos.x;
+		int diffY = currentPos.y - m_lastDragPos.y;
+
+		int w, h;
+		double aspect_ratio;
+		GetSize(&w, &h);
+		aspect_ratio = (double)w / (double)h;
+		// 300 is good when the viewport ratio is 1876 / 248 = 7.5645
+//		SetDate(GetDate() - (diffX * GetZoom() / 300.0));
+		SetDate(GetDate() - (diffX * GetZoom() * aspect_ratio / 2269.355));
+
+		m_appData->updateDateScrollbar = true;
+
+		m_lastDragPos = currentPos;
 	}
 
 	event.Skip();
@@ -847,7 +927,21 @@ void TimelineGLCanvas::OnMouseWheel(wxMouseEvent& event)
 void TimelineGLCanvas::OnLeftDown(wxMouseEvent& event)
 {
 	MouseToOpenGLPlane(event, this, m_clickPosX, m_clickPosY);
-	CheckForSelection();
+	m_selectedIndex = CheckForSelection();
+	m_appData->updateSelection = true;
+
+	m_lastDragPos = event.GetPosition();
+
+	event.Skip();
+}
+
+void TimelineGLCanvas::OnLeftDoubleClick(wxMouseEvent& event)
+{
+	if (m_selectedIndex != -1)
+	{
+		SetDate(m_appData->eventList[m_selectedIndex].startDate);
+		m_appData->updateDateScrollbar = true;
+	}
 
 	event.Skip();
 }

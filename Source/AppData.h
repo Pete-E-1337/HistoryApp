@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+static const double l_latLongUninitialized	= 999.0;
+
 typedef struct TimelineEventData
 {
 	std::string		name;
@@ -35,6 +37,7 @@ public:
 	bool							rendering				= true;
 	bool							updateDateRangeText	= true;
 	bool							updateDateScrollbar	= false;
+	bool							updateSelection		= true;
 };
 
 #endif // APPDATA_H

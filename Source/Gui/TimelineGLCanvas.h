@@ -54,12 +54,16 @@ public:
 	void SetAppData(AppData* appData) { m_appData = appData; }
 	void SetDate(double date);
 	void SetZoom(double percentage);
+	void ZoomIn(double step);
+	void ZoomOut(double step);
 	double GetZoom() { return m_cameraMatrix.GetPositionZ(); }
 	double GetZoomPercentage();
 	double GetDate();
 	double GetVisibleDateRange() { return m_visibleDateRange; }
 	void DetermineVisibleDateRange();
 	static std::string DateToString(double date);
+	int GetSelectedIndex() { return m_selectedIndex; }
+	void SetSelectedIndex(int index);
 
 	const std::string GetDebugString() { return m_debugString; }
 protected:
@@ -70,6 +74,8 @@ protected:
 	void OnKeyUp(wxKeyEvent& event);
 	//void OnMouse(wxMouseEvent& event);
 	void OnLeftDown(wxMouseEvent& event);
+	void OnLeftDoubleClick(wxMouseEvent& event);
+	void OnMouseMove(wxMouseEvent& event);
 	void OnMouseWheel(wxMouseEvent& event);
 
 private:
@@ -82,7 +88,7 @@ private:
 	//void RenderSeaGrid();
 //	void ShowGraph(GraphType graphType);
 //	void OnUpdateGraphDataCallback(bool clearGraph);
-	void CheckForSelection();
+	int CheckForSelection();
 	void DrawTimelineEventDataList();
 	void DrawTimelineEvent(const TimelineEventData& eventData, bool selected, float font_scale, float y1_pos, float y2_pos, uint8_t red = 255, uint8_t green = 255, uint8_t blue = 255);
 	void DrawTimelineBackground(float font_scale, float events_start_y, float events_end_y);
@@ -156,14 +162,15 @@ private:
 	//wxJoystick*											m_joyStick					= nullptr;
 	//JoystickData										m_joystickData;
 	OpenGLFont						m_openglFont;
-	int								m_selectedId				= -1;
+//	int								m_selectedId				= -1;
+	int								m_selectedIndex			= -1;
 	AppData*							m_appData					= nullptr;
 	//double							m_lowerDisplayDate		= 0.0;
 	//double							m_upperDisplayDate		= 0.0;
+	wxPoint							m_lastDragPos;
 	double							m_clickPosX					= 0.0;
 	double							m_clickPosY					= 0.0;
 	double							m_visibleDateRange		= 0.0;
-
 
 	wxDECLARE_NO_COPY_CLASS(TimelineGLCanvas);
 	wxDECLARE_EVENT_TABLE();

@@ -115,6 +115,7 @@ svs_auto_lib_src(
 		Time/TimeHelper
 		Std.h
 		StringUtilities.h
+		StringUtilities.inl
 	)
 	
 svs_lib_use(

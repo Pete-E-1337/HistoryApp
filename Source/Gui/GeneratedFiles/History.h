@@ -17,6 +17,8 @@
 #include <wx/colour.h>
 #include <wx/settings.h>
 #include <wx/choice.h>
+#include <wx/textctrl.h>
+#include <wx/button.h>
 #include <wx/sizer.h>
 #include <wx/panel.h>
 #include <wx/bitmap.h>
@@ -24,8 +26,6 @@
 #include <wx/icon.h>
 #include <wx/statbmp.h>
 #include <wx/scrolbar.h>
-#include <wx/button.h>
-#include <wx/textctrl.h>
 #include <wx/valtext.h>
 #include <wx/slider.h>
 #include <wx/splitter.h>
@@ -55,6 +55,11 @@ namespace History
 			wxPanel* m_panel10;
 			wxStaticText* m_staticText1;
 			wxChoice* m_categoryChoice;
+			wxTextCtrl* m_findTextCtrl;
+			wxButton* m_findButton;
+			wxButton* m_googleSearchButton;
+			wxButton* m_wikipediaSearchButton;
+			wxButton* m_mapSearchButton;
 			wxPanel* m_bitmapPanel;
 			wxStaticBitmap* m_bitmap;
 			wxPanel* m_panel14;
@@ -85,8 +90,12 @@ namespace History
 			// Virtual event handlers, overide them in your derived class
 			virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
 			virtual void OnIdle( wxIdleEvent& event ) { event.Skip(); }
-			virtual void OnMainFormKeyDown( wxKeyEvent& event ) { event.Skip(); }
 			virtual void OnMainSplitterSplitterSashPosChanged( wxSplitterEvent& event ) { event.Skip(); }
+			virtual void OnFindTextCtrlTextEnter( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnFindButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnGoogleSearchButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnWikipediaSearchButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnMapSearchButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnBitmapLeftDown( wxMouseEvent& event ) { event.Skip(); }
 			virtual void OnTimelineZoomScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }
 			virtual void OnTimelineDateScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }

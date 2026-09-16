@@ -25,9 +25,8 @@ public:
 	virtual void OnClose(wxCloseEvent& event) override;
 	virtual void OnIdle(wxIdleEvent& event) override;
 	virtual void OnTimelineDateScrollBarScroll(wxScrollEvent& event) override;
-	virtual void OnTimelineZoomScrollBarScroll(wxScrollEvent& event) override;
+//	virtual void OnTimelineZoomScrollBarScroll(wxScrollEvent& event) override;
 	virtual void OnTimelineZoomSliderScroll(wxScrollEvent& event) override;
-	virtual void OnMainFormKeyDown(wxKeyEvent& event) override;
 	//virtual void OnDateSpinBtnSpinDown(wxSpinEvent& event) override;
 	//virtual void OnDateSpinBtnSpinUp(wxSpinEvent& event) override;
 	virtual void OnBitmapLeftDown(wxMouseEvent& event) override;
@@ -36,9 +35,15 @@ public:
 	//virtual void OnDateRightStaticTextLeftDown(wxMouseEvent& event) override;
 	virtual void OnDateLeftButtonButtonClick(wxCommandEvent& event) override;
 	virtual void OnDateRightButtonButtonClick(wxCommandEvent& event) override;
+	virtual void OnFindTextCtrlTextEnter(wxCommandEvent& event) override;
+	virtual void OnFindButtonButtonClick(wxCommandEvent& event) override;
+	virtual void OnGoogleSearchButtonButtonClick(wxCommandEvent& event) override;
+	virtual void OnWikipediaSearchButtonButtonClick(wxCommandEvent& event) override;
+	virtual void OnMapSearchButtonButtonClick(wxCommandEvent& event) override;
 
 private:
    void Initialise();
+	void OnGlobalCharHook(wxKeyEvent& event);
 //	void InitialiseSerialComms();
 //	bool GetValueString(std::ifstream& file, const std::string& searchStr, std::string& value);
 //	bool ParsePidFile(const std::string& filename);
@@ -52,10 +57,13 @@ private:
 	void SetZoomSliderPosition();
 	void UpdateDateText();
 	void UpdateDateRangeText();
+	void SetDateRangeText();
 	void UpdateDateScrollbar();
+	void UpdateSelection();
 	void UpdateImage();
 	void ImageUpdateThread(void);
 	bool LoadHistoryFile(std::string filename);
+	void FindText();
 
 private:
 	ImageDialog*					m_imageDialog				= nullptr;
@@ -74,6 +82,7 @@ private:
 	boost::thread*					m_imageUpdateThread		= nullptr;
 	wxLongLong						m_lastRenderTimeMsecs	= 0;
 	wxLongLong						m_renderDeltaTimeMSecs	= 0;// milliseconds since last trigger
+//	uint								m_findIndex					= 0;
 };
 
 #endif // MAINFORM_H

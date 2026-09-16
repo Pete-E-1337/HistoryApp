@@ -36,12 +36,17 @@ const char*				l_settingsFilename				= "settings.txt";
 //const char*				l_historyFilename					= "Data/1000_significant_history_events.csv";
 //const char*				l_historyFilename					= "Data/75_significant_history_events.csv";
 const char*				l_historyFilename					= "Data/x_significant_history_events.csv";
+static const double	l_startingDate						= -2560.0;	// pyramid of giza
 static const int		l_guiTimerInterval				= 300;
 static const int		l_renderTimerInterval			= 40;
 static const int		l_imageUpdateThreadInterval	= 300;
 static const double	l_timelineSplitterProportion	= 0.6;
-static const double	l_oneDay								= 1.0 / 365.0;
+static const double	l_oneYear							= 1.0;
 static const double	l_oneMonth							= 1.0 / 12.0;
+static const double	l_oneFortnight						= 14.0 / 365.0;
+static const double	l_oneWeek							= 7.0 / 365.0;
+static const double	l_oneDay								= 1.0 / 365.0;
+static const double	l_minimumEventTime				= l_oneMonth;
 
 MainForm::MainForm(wxWindow* parent, AppData* appData) :
 	History::MainForm(parent),
@@ -135,7 +140,7 @@ void MainForm::Initialise()
 	m_timelineCanvas = new TimelineGLCanvas(m_timelinePanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	wxSizer* sizer = m_timelinePanel->GetSizer();
 	sizer->Add(m_timelineCanvas, 1, wxEXPAND);
-	m_timelineCanvas->SetFocus();
+//	m_timelineCanvas->SetFocus();
 
 	m_imageDialog		= new ImageDialog(this);
 
@@ -159,7 +164,8 @@ void MainForm::Initialise()
 	//m_zoomTextCtrl->SetValue(str);
 	m_appData->updateDateRangeText = true;
 
-	SetTimelineDateScrollBarPositionFromDate(0.0);
+	m_timelineCanvas->SetDate(l_startingDate);
+	SetTimelineDateScrollBarPositionFromDate(l_startingDate);
 
 	// Set the application to be (windowed) full screen and centred
 	{
@@ -176,6 +182,8 @@ void MainForm::Initialise()
 	}
 
 	SetAppData(m_appData);
+
+	Bind(wxEVT_CHAR_HOOK, &MainForm::OnGlobalCharHook, this);
 
 	m_guiTimer.Start(l_guiTimerInterval);
 	m_renderTickTimer.Start(l_renderTimerInterval);
@@ -258,6 +266,7 @@ void MainForm::OnGuiTimer(wxTimerEvent& event)
 		UpdateDateText();
 		UpdateDateRangeText();
 		UpdateDateScrollbar();
+		UpdateSelection();
 	}
 
 	event.Skip();
@@ -299,7 +308,7 @@ void MainForm::OnDateTextCtrlTextEnter(wxCommandEvent& event)
 	int date = std::stoi(str);
 
 	m_timelineCanvas->SetDate(date);
-	m_timelineCanvas->SetFocus();
+//	m_timelineCanvas->SetFocus();
 	m_updating_date_text		= true;
 	m_image_requires_update	= true;
 
@@ -332,12 +341,17 @@ void MainForm::UpdateDateRangeText()
 {
 	if (m_appData->updateDateRangeText == true)
 	{
-		double range = m_timelineCanvas->GetVisibleDateRange();
-		std::string str = std::to_string(std::lround(range)) + " years";
-		m_zoomTextCtrl->SetValue(str);
+		SetDateRangeText();
 		SetZoomSliderPosition();
 		m_appData->updateDateRangeText = false;
 	}
+}
+
+void MainForm::SetDateRangeText()
+{
+	double range = m_timelineCanvas->GetVisibleDateRange();
+	std::string str = std::to_string(std::lround(range)) + " years";
+	m_zoomTextCtrl->SetValue(str);
 }
 
 void MainForm::UpdateDateScrollbar()
@@ -347,6 +361,22 @@ void MainForm::UpdateDateScrollbar()
 		SetTimelineDateScrollBarPositionFromDate(m_timelineCanvas->GetDate());
 		m_image_requires_update = true;
 		m_appData->updateDateScrollbar = false;
+	}
+}
+
+void MainForm::UpdateSelection()
+{
+	if (m_appData->updateSelection == true)
+	{
+		m_appData->updateSelection = false;
+
+		int index = m_timelineCanvas->GetSelectedIndex();
+
+		m_googleSearchButton->Enable(index != -1);
+		m_wikipediaSearchButton->Enable(index != -1);
+		m_mapSearchButton->Enable((index != -1) &&
+										  (m_appData->eventList[index].latitude != l_latLongUninitialized) &&
+										  (m_appData->eventList[index].longitude != l_latLongUninitialized));
 	}
 }
 
@@ -488,25 +518,25 @@ void MainForm::SetTimelineDateScrollBarPositionFromDate(double date)
 	m_timelineDateScrollBar->SetThumbPosition((int)pos);
 }
 
-void MainForm::OnTimelineZoomScrollBarScroll(wxScrollEvent& event)
-{
-	int pos = event.GetPosition();	// range is 0 to (range - 1) :/
-	double percentage = pos / (double)(m_timelineZoomScrollBar->GetRange() + 1);
-
-	m_timelineCanvas->SetZoom(percentage);
-
-//	std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * 6.0)) + " years";
-	//int w, h;
-	//double aspect_ratio;
-	//m_timelineCanvas->GetSize(&w, &h);
-	//aspect_ratio = (double)w / (double)h;
-	//std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * aspect_ratio * 2.46)) + " years";
-	//m_zoomTextCtrl->SetValue(str);
-	m_appData->updateDateRangeText = true;
-
-	event.Skip();
-}
-
+//void MainForm::OnTimelineZoomScrollBarScroll(wxScrollEvent& event)
+//{
+//	int pos = event.GetPosition();	// range is 0 to (range - 1) :/
+//	double percentage = pos / (double)(m_timelineZoomScrollBar->GetRange() + 1);
+//
+//	m_timelineCanvas->SetZoom(percentage);
+//
+////	std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * 6.0)) + " years";
+//	//int w, h;
+//	//double aspect_ratio;
+//	//m_timelineCanvas->GetSize(&w, &h);
+//	//aspect_ratio = (double)w / (double)h;
+//	//std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * aspect_ratio * 2.46)) + " years";
+//	//m_zoomTextCtrl->SetValue(str);
+//	m_appData->updateDateRangeText = true;
+//
+//	event.Skip();
+//}
+//
 void MainForm::SetZoomSliderPosition()
 {
 	double percentage = m_timelineCanvas->GetZoomPercentage();
@@ -530,42 +560,46 @@ void MainForm::OnTimelineZoomSliderScroll(wxScrollEvent& event)
 	//aspect_ratio = (double)w / (double)h;
 	//std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * aspect_ratio * 2.46)) + " years";
 	//m_zoomTextCtrl->SetValue(str);
-	m_appData->updateDateRangeText = true;
+
+//	m_appData->updateDateRangeText = true;
+	// Do not use the usual method of setting the m_zoomTextCtrl's text by setting m_appData->updateDateRangeText to true as this causes
+	// a loop when it sets the sliders value. Instead, update the text directly
+	SetDateRangeText();
 
 	event.Skip();
 }
 
-void MainForm::OnMainFormKeyDown(wxKeyEvent& event)
+void MainForm::OnGlobalCharHook(wxKeyEvent& event)
 {
-	// Seems like other controls quickly get focus so probably not a good idea to handle here
+	// https://theasciicode.com.ar/
 
-//	// https://theasciicode.com.ar/
-//
-//	float step = (event.ShiftDown() == true) ? 10.0f : 1.0f;
-//
-//	int keyCode = event.GetKeyCode();
-//
-//	switch (keyCode)
-//	{
-//		case 'A':
-////			SetDate(GetDate() - step);
-//			break;
-//		case 'D':
-////			SetDate(GetDate() + step);
-//			break;
-//		case 'W':
-////			m_cameraMatrix.SetPositionZ((std::max)(l_nearClipPlane, m_cameraMatrix.GetPositionZ() - step));
-//			break;
-//		case 'S':
-////			m_cameraMatrix.SetPositionZ((std::min)(l_farClipPlane, m_cameraMatrix.GetPositionZ() + step));
-//			break;
-//	//	case 306:	m_cameraSpeedScale = 2.0;														break;	// Shift key
-//	//	case WXK_ESCAPE:
-//	//	case 'V':	m_inputData.keyData.exitKeyDown = true;									break;
-//		default: break;
-//	}
+	float step = (event.ShiftDown() == true) ? 10.0f : 1.0f;
 
-	event.Skip();
+	int keyCode = event.GetKeyCode();
+
+	switch (keyCode)
+	{
+		case WXK_F3:// F3
+			FindText();
+			break;
+		case 'A':
+			m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() - step);
+			m_appData->updateDateScrollbar = true;
+			break;
+		case 'D':
+			m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() + step);
+			m_appData->updateDateScrollbar = true;
+			break;
+		case 'W':
+			m_timelineCanvas->ZoomIn(step);
+			break;
+		case 'S':
+			m_timelineCanvas->ZoomOut(step);
+			break;
+		default: break;
+	}
+
+	event.Skip(); 
 }
 
 //void MainForm::OnDateSpinBtnSpinDown(wxSpinEvent& event)
@@ -646,6 +680,136 @@ void MainForm::OnBitmapLeftDown(wxMouseEvent& event)
 	event.Skip();
 }
 
+void MainForm::OnFindTextCtrlTextEnter(wxCommandEvent& event)
+{
+	FindText();
+
+	event.Skip();
+}
+
+void MainForm::OnFindButtonButtonClick(wxCommandEvent& event)
+{
+	FindText();
+
+	event.Skip();
+}
+
+void MainForm::FindText()
+{
+	if ((m_findTextCtrl->GetValue().IsEmpty() == false) &&
+		(m_appData->eventList.empty() == false))
+	{
+		std::string searchString = m_findTextCtrl->GetValue();
+		std::string str;
+
+		// Convert to lowercase
+		SVS::StringUtilities::ToLowerCase(searchString);
+
+		//uint index = m_findIndex + 1;
+		uint index = m_timelineCanvas->GetSelectedIndex() + 1;
+
+		for (uint i = 0; i < m_appData->eventList.size(); i++)
+		{
+			if (index == m_appData->eventList.size())
+				index = 0;
+
+			str = m_appData->eventList[index].name;
+
+			// Convert to lowercase
+			SVS::StringUtilities::ToLowerCase(str);
+
+			if (str.find(searchString) != std::string::npos)
+			{
+				// Search string was found
+				m_timelineCanvas->SetDate(m_appData->eventList[index].startDate);
+				m_appData->updateDateScrollbar = true;
+				m_timelineCanvas->SetSelectedIndex(index);
+				//m_findIndex = index;
+				break;
+			}
+
+			index++;
+		}
+	}
+}
+
+void MainForm::OnGoogleSearchButtonButtonClick(wxCommandEvent& event)
+{
+	int index = m_timelineCanvas->GetSelectedIndex();
+
+	if (index != -1)
+	{
+		TimelineEventData& historyEvent = m_appData->eventList[index];
+
+		wxString topic = historyEvent.name;
+
+		// 2. Format the Google search URL
+		// wxURI::CreateStepwiseEncoded performs basic URL component encoding
+		//wxString encodedTopic = wxURI::CreateStepwiseEncoded(topic, wxURI_REGNAME);
+		//wxString encodedTopic = wxURI::Escape(topic);
+		topic.Replace(" ", "+");
+		wxString url = "https://google.com/search?q=" + topic;
+
+		// 3. Open the default system browser
+		bool success = wxLaunchDefaultBrowser(url);
+	}
+
+	event.Skip();
+}
+
+void MainForm::OnWikipediaSearchButtonButtonClick(wxCommandEvent& event)
+{
+	int index = m_timelineCanvas->GetSelectedIndex();
+
+	if (index != -1)
+	{
+		TimelineEventData& historyEvent = m_appData->eventList[index];
+
+		wxString topic = historyEvent.name;
+
+		// 2. Format the Google search URL
+		// wxURI::CreateStepwiseEncoded performs basic URL component encoding
+		//wxString encodedTopic = wxURI::CreateStepwiseEncoded(topic, wxURI_REGNAME);
+		//wxString encodedTopic = wxURI::Escape(topic);
+		topic.Replace(" ", "+");
+		wxString url = "https://en.wikipedia.org/w/index.php?search=" + topic;
+
+		// 3. Open the default system browser
+		bool success = wxLaunchDefaultBrowser(url);
+	}
+
+	event.Skip();
+}
+
+void MainForm::OnMapSearchButtonButtonClick(wxCommandEvent& event)
+{
+	int index = m_timelineCanvas->GetSelectedIndex();
+
+	if (index != -1)
+	{
+		TimelineEventData& historyEvent = m_appData->eventList[index];
+
+		//// eg. https://www.google.com/maps/place/41.40338,2.17403/@41.40338,2.17403,10z
+		//// 10z is the zoom level which can range from 0 (zoomed out) to 22 (zoomed in)
+		//// this method leaves the search bar open and adds a place marker
+		//wxString locationStr = std::to_string(lat) + "," + std::to_string(lon) + "/" + "@" + std::to_string(lat) + "," + std::to_string(lon);
+		//wxString url = "https://www.google.com/maps/place/" + locationStr + ",10z";
+
+		// eg. http://maps.google.com/maps?ll=54.868705,-1.593018&z=9
+		// z= is the zoom level which can range from 0 (zoomed out) to 22 (zoomed in)
+		// ll= sets the geographic center of the map using latitude and longitude coordinates
+		double lat = historyEvent.latitude;
+		double lon = historyEvent.longitude;
+		wxString locationStr = std::to_string(lat) + "," + std::to_string(lon);
+		wxString url = "https://www.google.com/maps?ll=" + locationStr + "&z=13";
+
+		// 3. Open the default system browser
+		bool success = wxLaunchDefaultBrowser(url);
+	}
+
+	event.Skip();
+}
+
 bool MainForm::LoadHistoryFile(std::string filename)
 {
 	std::ifstream file(filename);
@@ -699,7 +863,7 @@ bool MainForm::LoadHistoryFile(std::string filename)
 
 		if (eventData.endDate == eventData.startDate)
 		{
-			eventData.endDate += l_oneDay;
+			eventData.endDate += l_minimumEventTime;
 		}
 
 		if (eventData.name.empty() == false)

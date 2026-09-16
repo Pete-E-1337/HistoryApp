@@ -48,7 +48,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	
 	m_panel10 = new wxPanel( m_panel2, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxFlexGridSizer* fgSizer12;
-	fgSizer12 = new wxFlexGridSizer( 0, 0, 0, 0 );
+	fgSizer12 = new wxFlexGridSizer( 0, 2, 0, 0 );
 	fgSizer12->SetFlexibleDirection( wxBOTH );
 	fgSizer12->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
@@ -60,7 +60,34 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	int m_categoryChoiceNChoices = sizeof( m_categoryChoiceChoices ) / sizeof( wxString );
 	m_categoryChoice = new wxChoice( m_panel10, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_categoryChoiceNChoices, m_categoryChoiceChoices, 0 );
 	m_categoryChoice->SetSelection( 0 );
-	fgSizer12->Add( m_categoryChoice, 0, wxALL, 5 );
+	fgSizer12->Add( m_categoryChoice, 0, wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND, 5 );
+	
+	m_findTextCtrl = new wxTextCtrl( m_panel10, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER );
+	fgSizer12->Add( m_findTextCtrl, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	
+	m_findButton = new wxButton( m_panel10, wxID_ANY, wxT("Find"), wxDefaultPosition, wxDefaultSize, 0 );
+	fgSizer12->Add( m_findButton, 0, wxALL|wxEXPAND, 5 );
+	
+	m_googleSearchButton = new wxButton( m_panel10, wxID_ANY, wxT("Google Search"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_googleSearchButton->Enable( false );
+	
+	fgSizer12->Add( m_googleSearchButton, 0, wxALL|wxEXPAND, 5 );
+	
+	
+	fgSizer12->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	m_wikipediaSearchButton = new wxButton( m_panel10, wxID_ANY, wxT("Wikipedia Search"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_wikipediaSearchButton->Enable( false );
+	
+	fgSizer12->Add( m_wikipediaSearchButton, 0, wxALL, 5 );
+	
+	
+	fgSizer12->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	m_mapSearchButton = new wxButton( m_panel10, wxID_ANY, wxT("Google Map"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_mapSearchButton->Enable( false );
+	
+	fgSizer12->Add( m_mapSearchButton, 0, wxALL|wxEXPAND, 5 );
 	
 	
 	m_panel10->SetSizer( fgSizer12 );
@@ -290,8 +317,12 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	// Connect Events
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( MainForm::OnClose ) );
 	this->Connect( wxEVT_IDLE, wxIdleEventHandler( MainForm::OnIdle ) );
-	this->Connect( wxEVT_KEY_DOWN, wxKeyEventHandler( MainForm::OnMainFormKeyDown ) );
 	m_mainSplitter->Connect( wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, wxSplitterEventHandler( MainForm::OnMainSplitterSplitterSashPosChanged ), NULL, this );
+	m_findTextCtrl->Connect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainForm::OnFindTextCtrlTextEnter ), NULL, this );
+	m_findButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnFindButtonButtonClick ), NULL, this );
+	m_googleSearchButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnGoogleSearchButtonButtonClick ), NULL, this );
+	m_wikipediaSearchButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnWikipediaSearchButtonButtonClick ), NULL, this );
+	m_mapSearchButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnMapSearchButtonButtonClick ), NULL, this );
 	m_bitmap->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnBitmapLeftDown ), NULL, this );
 	m_timelineZoomScrollBar->Connect( wxEVT_SCROLL_TOP, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );
 	m_timelineZoomScrollBar->Connect( wxEVT_SCROLL_BOTTOM, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );
@@ -337,8 +368,12 @@ MainForm::~MainForm()
 	// Disconnect Events
 	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( MainForm::OnClose ) );
 	this->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainForm::OnIdle ) );
-	this->Disconnect( wxEVT_KEY_DOWN, wxKeyEventHandler( MainForm::OnMainFormKeyDown ) );
 	m_mainSplitter->Disconnect( wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, wxSplitterEventHandler( MainForm::OnMainSplitterSplitterSashPosChanged ), NULL, this );
+	m_findTextCtrl->Disconnect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainForm::OnFindTextCtrlTextEnter ), NULL, this );
+	m_findButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnFindButtonButtonClick ), NULL, this );
+	m_googleSearchButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnGoogleSearchButtonButtonClick ), NULL, this );
+	m_wikipediaSearchButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnWikipediaSearchButtonButtonClick ), NULL, this );
+	m_mapSearchButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnMapSearchButtonButtonClick ), NULL, this );
 	m_bitmap->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnBitmapLeftDown ), NULL, this );
 	m_timelineZoomScrollBar->Disconnect( wxEVT_SCROLL_TOP, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );
 	m_timelineZoomScrollBar->Disconnect( wxEVT_SCROLL_BOTTOM, wxScrollEventHandler( MainForm::OnTimelineZoomScrollBarScroll ), NULL, this );
