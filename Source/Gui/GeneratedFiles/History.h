@@ -17,18 +17,20 @@
 #include <wx/colour.h>
 #include <wx/settings.h>
 #include <wx/choice.h>
-#include <wx/textctrl.h>
 #include <wx/button.h>
+#include <wx/textctrl.h>
 #include <wx/sizer.h>
 #include <wx/panel.h>
+#include <wx/valtext.h>
+#include <wx/slider.h>
+#include <wx/spinctrl.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/icon.h>
 #include <wx/statbmp.h>
-#include <wx/scrolbar.h>
-#include <wx/valtext.h>
-#include <wx/slider.h>
+#include <wx/webview.h>
 #include <wx/splitter.h>
+#include <wx/scrolbar.h>
 #include <wx/timer.h>
 #include <wx/menu.h>
 #include <wx/frame.h>
@@ -39,7 +41,9 @@
 namespace History
 {
 	#define MAIN_GUI_TIMER 1000
-	#define MAIN_RENDER_TIMER 1001
+	#define MAIN_IMAGE_TIMER 1001
+	#define MAIN_SLIDESHOW_TIMER 1002
+	#define MAIN_RENDER_TIMER 1003
 	
 	///////////////////////////////////////////////////////////////////////////////
 	/// Class MainForm
@@ -51,17 +55,39 @@ namespace History
 		protected:
 			wxSplitterWindow* m_mainSplitter;
 			wxPanel* m_topPanel;
+			wxSplitterWindow* m_splitter2;
 			wxPanel* m_panel2;
+			wxPanel* m_panel16;
 			wxPanel* m_panel10;
 			wxStaticText* m_staticText1;
 			wxChoice* m_categoryChoice;
-			wxTextCtrl* m_findTextCtrl;
 			wxButton* m_findButton;
+			wxTextCtrl* m_findTextCtrl;
 			wxButton* m_googleSearchButton;
 			wxButton* m_wikipediaSearchButton;
 			wxButton* m_mapSearchButton;
+			wxPanel* m_panel7;
+			wxStaticText* m_staticText3;
+			wxStaticText* m_dateLeftStaticText;
+			wxButton* m_dateLeftButton;
+			wxTextCtrl* m_dateTextCtrl;
+			wxButton* m_dateRightButton;
+			wxStaticText* m_dateRightStaticText;
+			wxPanel* m_panel17;
+			wxStaticText* m_staticText4;
+			wxSlider* m_timelineZoomSlider;
+			wxTextCtrl* m_zoomTextCtrl;
+			wxPanel* m_panel15;
+			wxButton* m_prevButton;
+			wxButton* m_pauseButton;
+			wxButton* m_playButton;
+			wxButton* m_nextButton;
+			wxStaticText* m_staticText6;
+			wxSpinCtrl* m_slideshowDisplayTimeSpinCtrl;
 			wxPanel* m_bitmapPanel;
 			wxStaticBitmap* m_bitmap;
+			wxPanel* m_panel18;
+			wxWebView* m_webView;
 			wxPanel* m_panel14;
 			wxPanel* m_timelineBasePanel;
 			wxPanel* m_timelinePanel;
@@ -70,20 +96,12 @@ namespace History
 			wxPanel* m_panel6;
 			wxScrollBar* m_timelineDateScrollBar;
 			wxPanel* m_panel9;
-			wxPanel* m_panel7;
-			wxStaticText* m_staticText3;
-			wxStaticText* m_dateLeftStaticText;
-			wxButton* m_dateLeftButton;
-			wxTextCtrl* m_dateTextCtrl;
-			wxButton* m_dateRightButton;
-			wxStaticText* m_dateRightStaticText;
-			wxStaticText* m_staticText4;
-			wxSlider* m_timelineZoomSlider;
-			wxTextCtrl* m_zoomTextCtrl;
 			wxPanel* m_bottomPanel;
 			wxTextCtrl* m_debugTextCtrl;
 			wxButton* m_exitButton;
 			wxTimer m_guiTimer;
+			wxTimer m_imageTimer;
+			wxTimer m_slideshowTimer;
 			wxTimer m_renderTickTimer;
 			wxMenuBar* m_menuBar;
 			
@@ -91,32 +109,49 @@ namespace History
 			virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
 			virtual void OnIdle( wxIdleEvent& event ) { event.Skip(); }
 			virtual void OnMainSplitterSplitterSashPosChanged( wxSplitterEvent& event ) { event.Skip(); }
-			virtual void OnFindTextCtrlTextEnter( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnFindButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnFindTextCtrlTextEnter( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnGoogleSearchButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnWikipediaSearchButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnMapSearchButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
-			virtual void OnBitmapLeftDown( wxMouseEvent& event ) { event.Skip(); }
-			virtual void OnTimelineZoomScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }
-			virtual void OnTimelineDateScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }
 			virtual void OnDateLeftStaticTextLeftDown( wxMouseEvent& event ) { event.Skip(); }
 			virtual void OnDateLeftButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnDateTextCtrlKillFocus( wxFocusEvent& event ) { event.Skip(); }
 			virtual void OnDateTextCtrlLeftDown( wxMouseEvent& event ) { event.Skip(); }
+			virtual void OnDateTextCtrlSetFocus( wxFocusEvent& event ) { event.Skip(); }
 			virtual void OnDateTextCtrlOnText( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnDateTextCtrlTextEnter( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnDateRightButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnDateRightStaticTextLeftDown( wxMouseEvent& event ) { event.Skip(); }
 			virtual void OnTimelineZoomSliderScroll( wxScrollEvent& event ) { event.Skip(); }
+			virtual void OnPrevButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnPauseButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnPlayButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnNextButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnSlideshowDisplayTimeSpinCtrlSpinCtrl( wxSpinEvent& event ) { event.Skip(); }
+			virtual void OnBitmapLeftDClick( wxMouseEvent& event ) { event.Skip(); }
+			virtual void OnBitmapLeftDown( wxMouseEvent& event ) { event.Skip(); }
+			virtual void OnBitmapMotion( wxMouseEvent& event ) { event.Skip(); }
+			virtual void OnTimelineZoomScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }
+			virtual void OnTimelineDateScrollBarScroll( wxScrollEvent& event ) { event.Skip(); }
 			virtual void OnExitButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnGuiTimer( wxTimerEvent& event ) { event.Skip(); }
+			virtual void OnImageTimer( wxTimerEvent& event ) { event.Skip(); }
+			virtual void OnSlideshowTimer( wxTimerEvent& event ) { event.Skip(); }
 			virtual void OnRenderTickTimer( wxTimerEvent& event ) { event.Skip(); }
 			
 		
 		public:
 			
-			MainForm( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("History App"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1000,700 ), long style = wxCAPTION|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxRESIZE_BORDER|wxSYSTEM_MENU|wxTAB_TRAVERSAL );
+			MainForm( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("History App"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1100,700 ), long style = wxCAPTION|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxRESIZE_BORDER|wxSYSTEM_MENU|wxTAB_TRAVERSAL );
 			
 			~MainForm();
+			
+			void m_splitter2OnIdle( wxIdleEvent& )
+			{
+				m_splitter2->SetSashPosition( 990 );
+				m_splitter2->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainForm::m_splitter2OnIdle ), NULL, this );
+			}
 		
 	};
 	

@@ -155,6 +155,8 @@ bool HistoryApp::OnInit()
    m_mainWindow->Refresh();
    m_mainWindow->Update();
 
+	m_mainWindow->Initialise();
+
    //m_wavebladeDriver       = new WavebladeDriver(&m_settings);
    //m_autonomousController  = new AutonomousController(&m_settings, m_wavebladeDriver);
 

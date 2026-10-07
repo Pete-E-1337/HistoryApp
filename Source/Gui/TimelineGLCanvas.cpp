@@ -240,7 +240,8 @@ void TimelineGLCanvas::InitGL()
 		//BREAK_UNLESS(ok);
 	}
 
-	bool ok = m_openglFont.Init("FreeSans.ttf", l_font_height);
+//	bool ok = m_openglFont.Init("FreeSans.ttf", l_font_height);
+	bool ok = m_openglFont.Init("FreeSerif.ttf", l_font_height);
 
 	//bool ok = true;
 
@@ -658,7 +659,7 @@ std::string TimelineGLCanvas::DateToString(double date)
 	}
 	else
 	{
-		str = std::to_string((int64_t)date) + " CE";	// AD
+		str = std::to_string((int64_t)date) + " CE";		// AD
 	}
 
 	return str;
