@@ -78,31 +78,59 @@ int PenguinMaps::GetArrayColIndexForLon(double lon)
 	return index;
 }
 
-void PenguinMaps::GetPixelLocation(double lat, double lon, MapPixelData* pixel_data)
+void PenguinMaps::GetPixelLocation(double lat, double lon, double date, MapPixelData* pixel_data)
 {
+	pixel_data->x = XXX;
+	pixel_data->y = XXX;
+
 	int row = GetArrayRowIndexForLat(lat);
 	int col = GetArrayColIndexForLon(lon);
 
 	if ((row == -1) || (col == -1))
 		return;
 
+//	const MapPixelData (*map_pixel_data)[l_array_rows][l_array_cols] = &l_map_pixel_data;
+	const MapPixelData (*map_pixel_data)[l_array_rows][l_array_cols];
+
+	if (date >= 1483.0)
+		map_pixel_data = &l_map_pixel_data_b; // The Penguin Atlas of Modern History + The Penguin Atlas of Recent History
+	else if (date >= 362.0)
+		map_pixel_data = &l_map_pixel_data_c; // The New Penguin Atlas of Medieval History
+	else if (date >= -40000.0)
+		map_pixel_data = &l_map_pixel_data_d;
+	else
+		map_pixel_data = &l_map_pixel_data;
+
 	SVS::Vector2Dd p1, p2, p3, p4;
 
 	// bottom left
-	p1.x = (double)(l_map_pixel_data[row][col].x);
-	p1.y = (double)(l_map_pixel_data[row][col].y);
+	p1.x = (double)((*map_pixel_data)[row][col].x);
+	p1.y = (double)((*map_pixel_data)[row][col].y);
 
 	// bottom right
-	p2.x = (double)(l_map_pixel_data[row][col + 1].x);
-	p2.y = (double)(l_map_pixel_data[row][col + 1].y);
+	p2.x = (double)((*map_pixel_data)[row][col + 1].x);
+	p2.y = (double)((*map_pixel_data)[row][col + 1].y);
 
 	// top left
-	p3.x = (double)(l_map_pixel_data[row - 1][col].x);
-	p3.y = (double)(l_map_pixel_data[row - 1][col].y);
+	p3.x = (double)((*map_pixel_data)[row - 1][col].x);
+	p3.y = (double)((*map_pixel_data)[row - 1][col].y);
 
 	// top right
-	p4.x = (double)(l_map_pixel_data[row - 1][col + 1].x);
-	p4.y = (double)(l_map_pixel_data[row - 1][col + 1].y);
+	p4.x = (double)((*map_pixel_data)[row - 1][col + 1].x);
+	p4.y = (double)((*map_pixel_data)[row - 1][col + 1].y);
+
+	// XXX
+	if ((p1.x <= XXX) ||
+		 (p1.y <= XXX) ||
+		 (p2.x <= XXX) ||
+		 (p2.y <= XXX) ||
+		 (p3.x <= XXX) ||
+		 (p3.y <= XXX) ||
+		 (p4.x <= XXX) ||
+		 (p4.y <= XXX))
+	{
+		return;	// no data in array (yet)
+	}
 
 	double x_scalar = (lon - l_map_col_lon_data[col]) / 10.0;	// 10.0f is the longitudinal step in our array
 	double y_scalar = (lat - l_map_row_lat_data[row]) / 5.0;		// 5.0f is the latitudinal step in our array

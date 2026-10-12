@@ -29,10 +29,9 @@ SVS_WARNING_DISABLE(4101) // unreferenced local variable
 //#define ENABLE_DEBUGGING_GUI
 
 #ifdef _DEBUG
-//#define USE_DEBUG_DATA
-//#define DEBUG_PID
 #define DRAW_DEBUG_TEXT
 //#define DRAW_PENGUIN_LAT_LON_MAPPING_ARRAY
+//#define DRAW_YORK_LONDON_LAT_LON_TEST
 #endif
 
 //#define USE_INTERNAL_BROWSER
@@ -45,8 +44,9 @@ const char*				l_settingsFilename				= "settings.txt";
 //const char*				l_historyFilename					= "Data/75_significant_history_events.csv";
 const char*				l_historyFilename					= "Data/x_significant_history_events.csv";
 //static const double	l_startingDate						= -2560.0;	// pyramid of giza
-//static const double	l_startingDate						= -40500.0;	// debug
-static const double	l_startingDate						= 651.0;	// debug
+static const double	l_startingDate						= -375.0;	// debug
+//static const double	l_startingDate						= 651.0;	// debug
+//static const double	l_startingDate						= 1980.0;	// debug
 static const int		l_guiTimerInterval				= 300;
 static const int		l_imageTimerInterval				= 300;
 static const int		l_renderTimerInterval			= 40;
@@ -62,6 +62,29 @@ static const double	l_minimumEventTime				= l_oneMonth;
 static const int		l_explosionImageSize				= 24;
 
 wxImage l_explosionImage;
+
+#ifdef DRAW_PENGUIN_LAT_LON_MAPPING_ARRAY
+// original
+//int	l_array_x_offset	= 0;
+//int	l_array_y_offset	= 0;
+//float	l_array_x_scale	= 1.0f;
+//float	l_array_y_scale	= 1.0f;
+// 1483 onwards
+//int	l_array_x_offset	= 166;
+//int	l_array_y_offset	= -218;
+//float	l_array_x_scale	= 1.2799f;
+//float	l_array_y_scale	= 1.2799f;
+// 362 onwards
+//int	l_array_x_offset	= 38;
+//int	l_array_y_offset	= 59;
+//float	l_array_x_scale	= 0.9599f;
+//float	l_array_y_scale	= 0.9599f;
+// -40000 onwards
+int	l_array_x_offset	= 38;
+int	l_array_y_offset	= 86;
+float	l_array_x_scale	= 0.8199f;
+float	l_array_y_scale	= 0.8199f;
+#endif
 
 MainForm::MainForm(wxWindow* parent, AppData* appData) :
 	History::MainForm(parent),
@@ -129,7 +152,8 @@ MainForm::MainForm(wxWindow* parent, AppData* appData) :
 	//aspect_ratio = (double)w / (double)h;
 	//std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * aspect_ratio * 2.46)) + " years";
 	//m_zoomTextCtrl->SetValue(str);
-	m_appData->updateDateRangeText = true;
+
+//	m_appData->updateDateRangeText = true;
 
 	m_timelineCanvas->SetDate(l_startingDate);
 	SetTimelineDateScrollBarPositionFromDate(l_startingDate);
@@ -161,11 +185,11 @@ MainForm::MainForm(wxWindow* parent, AppData* appData) :
 
 	Bind(wxEVT_CHAR_HOOK, &MainForm::OnGlobalCharHook, this);
 
-	m_guiTimer.Start(l_guiTimerInterval);
-	m_imageTimer.Start(l_imageTimerInterval);
-	m_renderTickTimer.Start(l_renderTimerInterval);
+	//m_guiTimer.Start(l_guiTimerInterval);
+	//m_imageTimer.Start(l_imageTimerInterval);
+	//m_renderTickTimer.Start(l_renderTimerInterval);
 
-	m_image_requires_update = true;
+	//m_image_requires_update = true;
 }
 
 MainForm::~MainForm()
@@ -188,26 +212,11 @@ MainForm::~MainForm()
 	m_guiTimer.Stop();
 	m_imageTimer.Stop();
 	m_renderTickTimer.Stop();
-//
+
 //	SaveSettings();
-//
-//   m_serialSettingsDialog->Destroy();
-//   m_serialSettingsDialog = nullptr;
 //
 //   m_aboutDialog->Destroy();
 //   m_aboutDialog = nullptr;
-//
-//	if (m_serialComms != nullptr)
-//	{
-//		delete m_serialComms;
-//		m_serialComms = nullptr;
-//	}
-//
-//	if (m_report != nullptr)
-//	{
-//		fclose(m_report);
-//		m_report = nullptr;
-//	}
 
    m_imageDialog->Destroy();
    m_imageDialog = nullptr;
@@ -215,9 +224,9 @@ MainForm::~MainForm()
 	if (m_timelineCanvas != nullptr)
 	{
 //		delete m_timelineCanvas;	// newed components are deleted by the wxWidgets system
+		m_timelineCanvas->Destroy();	// newed components are deleted by the wxWidgets system
 		m_timelineCanvas = nullptr;
 	}
-
 }
 
 void MainForm::Initialise()
@@ -257,16 +266,30 @@ void MainForm::Initialise()
 		LoadBattlesFile("Data/battles/100 Battles since 1900.csv", id);
 		LoadBattlesFile("Data/battles/100 Battles 800 to 1500 v2.csv", id);
 		LoadBattlesFile("Data/battles/100 Battles 1500-1900.csv", id);
+		//LoadBattlesFile("Data/battles/battle debug.csv", id);
 
 		std::sort(m_appData->battleList.begin(), m_appData->battleList.end(),
 						[](const BattleData& a, const BattleData& b) { return a.startDate < b.startDate; });
 
 		CalculateBattleMapPixelData();
+
+		//// debug
+		//{
+		//	MapPixelData pixel_data;
+		//	PenguinMaps::GetPixelLocation(31.5167, 64.1833, &pixel_data);
+		//}
 	}
 
 #ifdef USE_THUMBNAILS
 	CreateThumbnails();
 #endif
+
+	m_image_requires_update = true;
+	m_appData->updateDateRangeText = true;
+
+	m_guiTimer.Start(l_guiTimerInterval);
+	m_imageTimer.Start(l_imageTimerInterval);
+	m_renderTickTimer.Start(l_renderTimerInterval);
 
 	m_runImageUpdateThread = true;
 	m_imageUpdateThread = new boost::thread(boost::bind(&MainForm::ImageUpdateThread, this));
@@ -323,6 +346,10 @@ void MainForm::OnIdle(wxIdleEvent& event)
 
 void MainForm::ImageUpdateThread(void)
 {
+	// Run on a thread OUTSIDE of the gui (so as not to slow it down due to the load and shrink) and then schedule
+	// the actual image draw INSIDE the gui if required (via "CallAfter") once the work has been done and the image
+	// is ready
+
 	while (m_runImageUpdateThread == true)
 	{
 		UpdateImage(false);
@@ -666,6 +693,7 @@ void MainForm::DrawImageAndBattles()
 {
 	//if (m_imageIndex == -1)
 	//	return;
+	assert(m_imageIndex != -1);
 
 //	wxBitmap battleBmp("explosion.png", wxBITMAP_TYPE_PNG);
 	wxBitmap battleBmp(l_explosionImage);
@@ -698,18 +726,53 @@ void MainForm::DrawImageAndBattles()
 	// Draw "battles" at the recorded array mercator points
 	{
 		for (int row = 0; row < 10; row++)
+		{
 			for (int col = 0; col < 11; col++)
-				memDC.DrawBitmap(battleBmp, (int)(l_map_pixel_data[row][col].x * x_scale - half_battle_image_width), (int)(l_map_pixel_data[row][col].y * y_scale - half_battle_image_height), true);
+			{
+				float array_x = l_map_pixel_data[row][col].x * l_array_x_scale + l_array_x_offset;
+				float array_y = l_map_pixel_data[row][col].y * l_array_y_scale + l_array_y_offset;
+				memDC.DrawBitmap(battleBmp,
+				                (int)(array_x * x_scale - half_battle_image_width),
+									 (int)(array_y * y_scale - half_battle_image_height),
+									 true);
+			}
+		}
+	}
+
+	// Generate penguin map array data
+	if (false)
+	{
+		FILE* fp = fopen("map table.txt", "w");
+
+		for (int row = 0; row < 10; row++)
+		{
+			fprintf(fp, "{ ");
+
+			for (int col = 0; col < 11; col++)
+			{
+				float array_x = l_map_pixel_data[row][col].x * l_array_x_scale + l_array_x_offset;
+				float array_y = l_map_pixel_data[row][col].y * l_array_y_scale + l_array_y_offset;
+				fprintf(fp, "{%d,\t%d}, ", static_cast<int>(std::round(array_x)), static_cast<int>(std::round(array_y)));
+			}
+
+			fprintf(fp, " },\n");
+		}
+
+		fclose(fp);
 	}
 #endif
 
-	//// Draw a "battle" at York England (53.958332, -1.080278)
-	//{
-	//	MapPixelData pixel_data;
+#ifdef DRAW_YORK_LONDON_LAT_LON_TEST
+	// Draw a "battle" at York England (53.958332, -1.080278)
+	// You will need to change the date parameter depending on which map set you are testing (40000BC on, 362AD on, or 1483AD on)
+	{
+		MapPixelData pixel_data;
 
-	//	PenguinMaps::GetPixelLocation(53.958332, -1.080278, &pixel_data);
-	//	memDC.DrawBitmap(battleBmp, (int)(pixel_data.x * x_scale - half_battle_image_width), (int)(pixel_data.y * y_scale - half_battle_image_height), true);
-	//}
+		PenguinMaps::GetPixelLocation(53.958332, -1.080278, -39000.0, &pixel_data); // York, England
+//		PenguinMaps::GetPixelLocation(31, 64, &pixel_data);
+		memDC.DrawBitmap(battleBmp, (int)(pixel_data.x * x_scale - half_battle_image_width), (int)(pixel_data.y * y_scale - half_battle_image_height), true);
+	}
+#endif
 
 	m_displayedBattleList.clear();
 
@@ -718,7 +781,6 @@ void MainForm::DrawImageAndBattles()
 	//double endYear		= startYear + 1;
 
 	// in the range of the current map
-	assert(m_imageIndex != -1);
 	double startYear	= m_appData->imageList[m_imageIndex].startDate;
 	double endYear		= m_appData->imageList[m_imageIndex].endDate;
 
@@ -944,6 +1006,48 @@ void MainForm::OnGlobalCharHook(wxKeyEvent& event)
 		case 'S':
 			m_timelineCanvas->ZoomOut(step);
 			break;
+#ifdef DRAW_PENGUIN_LAT_LON_MAPPING_ARRAY
+		case 'J':
+			m_image_requires_update = true;
+			m_oldImageId = -1;
+			l_array_x_offset -= 1;
+			break;
+		case 'L':
+			m_image_requires_update = true;
+			m_oldImageId = -1;
+			l_array_x_offset += 1;
+			break;
+		case 'I':
+			m_image_requires_update = true;
+			m_oldImageId = -1;
+			l_array_y_offset -= 1;
+			break;
+		case 'K':
+			m_image_requires_update = true;
+			m_oldImageId = -1;
+			l_array_y_offset += 1;
+			break;
+		case '[':
+			m_image_requires_update = true;
+			m_oldImageId = -1;
+			l_array_x_scale -= 0.01f;
+			break;
+		case ']':
+			m_image_requires_update = true;
+			m_oldImageId = -1;
+			l_array_x_scale += 0.01f;
+			break;
+		case 80:	// 'p'
+			m_image_requires_update = true;
+			m_oldImageId = -1;
+			l_array_y_scale -= 0.01f;
+			break;
+		case ';':
+			m_image_requires_update = true;
+			m_oldImageId = -1;
+			l_array_y_scale += 0.01f;
+			break;
+#endif
 		default: break;
 	}
 
@@ -1663,7 +1767,7 @@ void MainForm::CalculateBattleMapPixelData()
 
 	for (BattleListIter iter = m_appData->battleList.begin(); iter != m_appData->battleList.end(); iter++)
 	{
-		PenguinMaps::GetPixelLocation(iter->latitude, iter->longitude, &pixel_data);
+		PenguinMaps::GetPixelLocation(iter->latitude, iter->longitude, iter->startDate, &pixel_data);
 		iter->mapImageXCoord = pixel_data.x;
 		iter->mapImageYCoord = pixel_data.y;
 	}

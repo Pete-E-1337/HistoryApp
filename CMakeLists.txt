@@ -129,6 +129,8 @@ svs_auto_lib_src(
 		FileIO/AsyncFileLoader
 		Logger/Log
 		Math/MiscMath
+		Math/Matrix.h
+		Math/Matrix3.h
 		Math/Matrix4.h
 #		Memory/CircularBuffer
 		Memory/MemoryPool

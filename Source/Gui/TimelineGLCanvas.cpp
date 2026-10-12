@@ -756,10 +756,14 @@ void TimelineGLCanvas::DetermineVisibleDateRange()
 	int w, h;
 	double aspect_ratio;
 	GetSize(&w, &h);
-	//aspect_ratio = ((double)w / (double)h) / 7.38;
-	//m_visibleDateRange = GetZoom() * aspect_ratio * 6.0;
-	aspect_ratio = (double)w / (double)h;
-	m_visibleDateRange = GetZoom() * aspect_ratio * 0.813;
+
+	if (h != 0.0)
+	{
+		//aspect_ratio = ((double)w / (double)h) / 7.38;
+		//m_visibleDateRange = GetZoom() * aspect_ratio * 6.0;
+		aspect_ratio = (double)w / (double)h;
+		m_visibleDateRange = GetZoom() * aspect_ratio * 0.813;
+	}
 }
 
 void TimelineGLCanvas::OnKeyDown(wxKeyEvent& event)
