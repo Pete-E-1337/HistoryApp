@@ -89,15 +89,18 @@ void PenguinMaps::GetPixelLocation(double lat, double lon, double date, MapPixel
 	if ((row == -1) || (col == -1))
 		return;
 
+	if (((row - 1) < 0) || ((col + 1) >= l_array_cols)) // won't be able to get the previous row, or the next column
+		return;
+
 //	const MapPixelData (*map_pixel_data)[l_array_rows][l_array_cols] = &l_map_pixel_data;
 	const MapPixelData (*map_pixel_data)[l_array_rows][l_array_cols];
 
-	if (date >= 1483.0)
-		map_pixel_data = &l_map_pixel_data_b; // The Penguin Atlas of Modern History + The Penguin Atlas of Recent History
+	if (date >= 1483.5)
+		map_pixel_data = &l_map_pixel_data_1483_onwards; // The Penguin Atlas of Modern History + The Penguin Atlas of Recent History
 	else if (date >= 362.0)
-		map_pixel_data = &l_map_pixel_data_c; // The New Penguin Atlas of Medieval History
+		map_pixel_data = &l_map_pixel_data_362_onwards; // The New Penguin Atlas of Medieval History
 	else if (date >= -40000.0)
-		map_pixel_data = &l_map_pixel_data_d;
+		map_pixel_data = &l_map_pixel_data_40000bc_onwards;
 	else
 		map_pixel_data = &l_map_pixel_data;
 

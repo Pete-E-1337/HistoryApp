@@ -57,6 +57,7 @@ public:
 	virtual void OnPlayButtonButtonClick(wxCommandEvent& event) override;
 	virtual void OnNextButtonButtonClick(wxCommandEvent& event) override;
 	virtual void OnSlideshowDisplayTimeSpinCtrlSpinCtrl(wxSpinEvent& event) override;
+	virtual void OnShowLatLonMenuItemMenuSelection(wxCommandEvent& event) override;
    void Initialise();
 
 	// Image Alignment
@@ -97,7 +98,7 @@ private:
 #ifdef USE_THUMBNAILS
 	void CreateThumbnails();
 #endif
-	void DeferredBitmapUpdate();
+	void DeferredBitmapUpdate(bool image_found);
 	void DrawImageAndBattles();
 
 private:
@@ -129,6 +130,7 @@ private:
 	wxImage							m_shrunkImg;
 	BattleList						m_displayedBattleList;
 	int								m_displayedBattleListIndex		= -1;
+	bool								m_showLatLonGrid					= false;
 };
 
 #endif // MAINFORM_H

@@ -104,6 +104,7 @@ namespace History
 			wxTimer m_slideshowTimer;
 			wxTimer m_renderTickTimer;
 			wxMenuBar* m_menuBar;
+			wxMenu* m_preferncesMenu;
 			
 			// Virtual event handlers, overide them in your derived class
 			virtual void OnClose( wxCloseEvent& event ) { event.Skip(); }
@@ -139,6 +140,7 @@ namespace History
 			virtual void OnImageTimer( wxTimerEvent& event ) { event.Skip(); }
 			virtual void OnSlideshowTimer( wxTimerEvent& event ) { event.Skip(); }
 			virtual void OnRenderTickTimer( wxTimerEvent& event ) { event.Skip(); }
+			virtual void OnShowLatLonMenuItemMenuSelection( wxCommandEvent& event ) { event.Skip(); }
 			
 		
 		public:

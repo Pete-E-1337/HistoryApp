@@ -4343,6 +4343,26 @@
                 <event name="OnSetFocus"></event>
                 <event name="OnSize"></event>
                 <event name="OnUpdateUI"></event>
+                <object class="wxMenu" expanded="1">
+                    <property name="label">Preferences</property>
+                    <property name="name">m_preferncesMenu</property>
+                    <property name="permission">protected</property>
+                    <object class="wxMenuItem" expanded="1">
+                        <property name="bitmap"></property>
+                        <property name="checked">0</property>
+                        <property name="enabled">1</property>
+                        <property name="help"></property>
+                        <property name="id">wxID_ANY</property>
+                        <property name="kind">wxITEM_CHECK</property>
+                        <property name="label">Show Lat/Lon Grid</property>
+                        <property name="name">m_showLatLonMenuItem</property>
+                        <property name="permission">none</property>
+                        <property name="shortcut"></property>
+                        <property name="unchecked_bitmap"></property>
+                        <event name="OnMenuSelection">OnShowLatLonMenuItemMenuSelection</event>
+                        <event name="OnUpdateUI"></event>
+                    </object>
+                </object>
             </object>
         </object>
         <object class="Dialog" expanded="0">

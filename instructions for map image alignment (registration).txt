@@ -1,0 +1,6 @@
+- resize all map images to 2570x2088
+- align images with "fiji imagej" app (instructions can be found in folders)
+- copy the images created in the output directory to a new directory and open a terminal
+- resize the new images by running "c:/batch/resize.bat" in the terminal
+- change to the resized directory
+- rename the "xxx.jpg.tif.jpg" files by running ".\renm.bat" in the terminal

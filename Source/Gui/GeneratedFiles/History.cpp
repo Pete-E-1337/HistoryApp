@@ -408,6 +408,13 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_slideshowTimer.SetOwner( this, MAIN_SLIDESHOW_TIMER );
 	m_renderTickTimer.SetOwner( this, MAIN_RENDER_TIMER );
 	m_menuBar = new wxMenuBar( 0 );
+	m_preferncesMenu = new wxMenu();
+	wxMenuItem* m_showLatLonMenuItem;
+	m_showLatLonMenuItem = new wxMenuItem( m_preferncesMenu, wxID_ANY, wxString( wxT("Show Lat/Lon Grid") ) , wxEmptyString, wxITEM_CHECK );
+	m_preferncesMenu->Append( m_showLatLonMenuItem );
+	
+	m_menuBar->Append( m_preferncesMenu, wxT("Preferences") ); 
+	
 	this->SetMenuBar( m_menuBar );
 	
 	
@@ -471,6 +478,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	this->Connect( MAIN_IMAGE_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnImageTimer ) );
 	this->Connect( MAIN_SLIDESHOW_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnSlideshowTimer ) );
 	this->Connect( MAIN_RENDER_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnRenderTickTimer ) );
+	this->Connect( m_showLatLonMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainForm::OnShowLatLonMenuItemMenuSelection ) );
 }
 
 MainForm::~MainForm()
@@ -533,6 +541,7 @@ MainForm::~MainForm()
 	this->Disconnect( MAIN_IMAGE_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnImageTimer ) );
 	this->Disconnect( MAIN_SLIDESHOW_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnSlideshowTimer ) );
 	this->Disconnect( MAIN_RENDER_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnRenderTickTimer ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainForm::OnShowLatLonMenuItemMenuSelection ) );
 	
 }
 

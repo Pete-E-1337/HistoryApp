@@ -18,6 +18,7 @@
 #include <SVSLibrary/StringUtilities.h>
 #include <SVSLibrary/Compiler/Warnings.h>
 #include <SVSLibrary/Math/MiscMath.h>
+#include <SVSLibrary/Math/Matrix3.h>
 #include <SVSLibrary/Spatial/Vector2D.h>
 #include "../PenguinMaps.h"
 
@@ -27,11 +28,14 @@ SVS_WARNING_DISABLE(4101) // unreferenced local variable
 //SVS_WARNING_DISABLE(4702) // unreachable code
 
 //#define ENABLE_DEBUGGING_GUI
+#define DRAW_BATTLES	// Should be activated normally but allow disabling for debugging purposes
 
 #ifdef _DEBUG
 #define DRAW_DEBUG_TEXT
-//#define DRAW_PENGUIN_LAT_LON_MAPPING_ARRAY
-//#define DRAW_YORK_LONDON_LAT_LON_TEST
+//#define GENERATE_LAT_LON_MAPPING_ARRAY
+//#define DRAW_BATTLES_AT_GRID_POINTS
+#define DRAW_LAT_LON_GRID
+//#define DRAW_YORK_LONDON_LAT_LON_TEST	// Remember to set the year for the map you want to compare it to
 #endif
 
 //#define USE_INTERNAL_BROWSER
@@ -44,7 +48,7 @@ const char*				l_settingsFilename				= "settings.txt";
 //const char*				l_historyFilename					= "Data/75_significant_history_events.csv";
 const char*				l_historyFilename					= "Data/x_significant_history_events.csv";
 //static const double	l_startingDate						= -2560.0;	// pyramid of giza
-static const double	l_startingDate						= -375.0;	// debug
+static const double	l_startingDate						= -40000.0;	// debug
 //static const double	l_startingDate						= 651.0;	// debug
 //static const double	l_startingDate						= 1980.0;	// debug
 static const int		l_guiTimerInterval				= 300;
@@ -63,27 +67,31 @@ static const int		l_explosionImageSize				= 24;
 
 wxImage l_explosionImage;
 
-#ifdef DRAW_PENGUIN_LAT_LON_MAPPING_ARRAY
+#ifdef GENERATE_LAT_LON_MAPPING_ARRAY
 // original
 //int	l_array_x_offset	= 0;
 //int	l_array_y_offset	= 0;
 //float	l_array_x_scale	= 1.0f;
 //float	l_array_y_scale	= 1.0f;
-// 1483 onwards
-//int	l_array_x_offset	= 166;
-//int	l_array_y_offset	= -218;
-//float	l_array_x_scale	= 1.2799f;
-//float	l_array_y_scale	= 1.2799f;
+//float l_array_rotation_degrees = 0.0f;
+// 1483.5 onwards
+//int	l_array_x_offset	= 132;
+//int	l_array_y_offset	= -391;
+//float l_array_x_scale	= 1.41999f;
+//float l_array_y_scale	= 1.37999f;
+//float l_array_rotation_degrees = 4.0f;
 // 362 onwards
-//int	l_array_x_offset	= 38;
-//int	l_array_y_offset	= 59;
-//float	l_array_x_scale	= 0.9599f;
-//float	l_array_y_scale	= 0.9599f;
+//int	l_array_x_offset	= 14;
+//int	l_array_y_offset	= 61;
+//float l_array_x_scale	= 0.990f;
+//float l_array_y_scale	= 0.97f;
+//float l_array_rotation_degrees = 0.0f;
 // -40000 onwards
-int	l_array_x_offset	= 38;
-int	l_array_y_offset	= 86;
-float	l_array_x_scale	= 0.8199f;
-float	l_array_y_scale	= 0.8199f;
+int	l_array_x_offset	= 34;
+int	l_array_y_offset	= 33;
+float l_array_x_scale	= 0.8399f;
+float l_array_y_scale	= 0.8199f;
+float l_array_rotation_degrees = 0.0f;
 #endif
 
 MainForm::MainForm(wxWindow* parent, AppData* appData) :
@@ -102,6 +110,8 @@ MainForm::MainForm(wxWindow* parent, AppData* appData) :
 	//	exp_value = SVS::Math::ExponentialInterpolate(10.0, 100.0, ratio);
 	//	ratio += 0.01;
 	//}
+
+	m_bitmap->SetBitmap(wxNullBitmap);
 
 	LoadSettings();
 
@@ -549,17 +559,29 @@ void MainForm::CreateThumbnails()
 }
 #endif
 
-void MainForm::DeferredBitmapUpdate()
+void MainForm::DeferredBitmapUpdate(bool image_found)
 {
-//	m_bitmap->SetBitmap(m_shrunkImg);	// Calling this causes a app freeze. Tried mutex but it hasnt fixed the problem.
+	if (image_found)
+	{
+//		m_bitmap->SetBitmap(m_shrunkImg);	// Calling this causes a app freeze. Tried mutex but it hasnt fixed the problem.
 
-	DrawImageAndBattles();
+		DrawImageAndBattles();
 
-	m_bitmapPanel->Layout();
+		m_bitmapPanel->Layout();
+	}
+	else
+	{
+		// Clear the bitmap
+		m_bitmap->SetBitmap(wxNullBitmap);
+		m_bitmapPanel->Layout();
+		m_bitmap->SetToolTip(wxEmptyString);
+	}
 }
 
 void MainForm::UpdateImage(bool calledFromGUI)
 {
+	assert(m_appData != nullptr);
+
 	if (m_appData->imageList.size() == 0)
 	{
 		return;
@@ -567,6 +589,8 @@ void MainForm::UpdateImage(bool calledFromGUI)
 
 	if (m_image_requires_update == true)
 	{
+		assert(m_timelineCanvas != nullptr);
+
 		double date = m_timelineCanvas->GetDate();
 
 		bool image_found = false;
@@ -647,7 +671,7 @@ void MainForm::UpdateImage(bool calledFromGUI)
 							// Defer bitmap update to avoid re-entrancy and because we should never call UI methods like SetBitmap()
 							// directly from worker threads (even though this is what i have specifically done to avoid stagnating
 							// the GUI) because it can cause application freezes.
-							CallAfter([this](){ DeferredBitmapUpdate(); });
+							CallAfter([this](){ DeferredBitmapUpdate(true); });
 						}
 					}
 
@@ -668,18 +692,22 @@ void MainForm::UpdateImage(bool calledFromGUI)
 
 		if (image_found == false)
 		{
-			// Clear the bitmap
-//			m_bitmapMutex.lock();
-			m_bitmap->SetBitmap(wxNullBitmap);
-//			m_bitmapMutex.unlock();
-			m_bitmapPanel->Layout();
+			if (calledFromGUI == true)
+			{
+				// Clear the bitmap
+				m_bitmap->SetBitmap(wxNullBitmap);
+				m_bitmapPanel->Layout();
+				m_bitmap->SetToolTip(wxEmptyString);
+			}
+			else
+			{
+				CallAfter([this](){ DeferredBitmapUpdate(false); });
+			}
 
 			if (m_imageDialog != nullptr)
 			{
 				m_imageDialog->SetImageFilename("");
 			}
-
-			m_bitmap->SetToolTip(wxEmptyString);
 
 			m_oldImageId = -1;
 			m_imageIndex = -1;
@@ -722,15 +750,26 @@ void MainForm::DrawImageAndBattles()
 	int half_battle_image_width	= battleBmp.GetWidth() / 2;
 	int half_battle_image_height	= battleBmp.GetHeight() / 2;
 
-#ifdef DRAW_PENGUIN_LAT_LON_MAPPING_ARRAY
+#ifdef GENERATE_LAT_LON_MAPPING_ARRAY
+	SVS::Matrix3<float> m;
+	SVS::Point2D<float> p;
+
+	m.Translate((float)l_array_x_offset, (float)l_array_y_offset);
+	m.Rotate((float)SVS::Math::DegreesToRadians(l_array_rotation_degrees));
+	m.Scale(l_array_x_scale, l_array_y_scale);
+
 	// Draw "battles" at the recorded array mercator points
 	{
 		for (int row = 0; row < 10; row++)
 		{
 			for (int col = 0; col < 11; col++)
 			{
-				float array_x = l_map_pixel_data[row][col].x * l_array_x_scale + l_array_x_offset;
-				float array_y = l_map_pixel_data[row][col].y * l_array_y_scale + l_array_y_offset;
+//				float array_x = l_map_pixel_data[row][col].x * l_array_x_scale + l_array_x_offset;
+//				float array_y = l_map_pixel_data[row][col].y * l_array_y_scale + l_array_y_offset;
+				p = m.TransformPoint(SVS::Point2D<float>((float)l_map_pixel_data[row][col].x, (float)l_map_pixel_data[row][col].y));
+				float array_x = p.x;
+				float array_y = p.y;
+
 				memDC.DrawBitmap(battleBmp,
 				                (int)(array_x * x_scale - half_battle_image_width),
 									 (int)(array_y * y_scale - half_battle_image_height),
@@ -742,7 +781,7 @@ void MainForm::DrawImageAndBattles()
 	// Generate penguin map array data
 	if (false)
 	{
-		FILE* fp = fopen("map table.txt", "w");
+		FILE* fp = fopen("_map table.txt", "w");
 
 		for (int row = 0; row < 10; row++)
 		{
@@ -750,9 +789,16 @@ void MainForm::DrawImageAndBattles()
 
 			for (int col = 0; col < 11; col++)
 			{
-				float array_x = l_map_pixel_data[row][col].x * l_array_x_scale + l_array_x_offset;
-				float array_y = l_map_pixel_data[row][col].y * l_array_y_scale + l_array_y_offset;
-				fprintf(fp, "{%d,\t%d}, ", static_cast<int>(std::round(array_x)), static_cast<int>(std::round(array_y)));
+				//float array_x = l_map_pixel_data[row][col].x * l_array_x_scale + l_array_x_offset;
+				//float array_y = l_map_pixel_data[row][col].y * l_array_y_scale + l_array_y_offset;
+				p = m.TransformPoint(SVS::Point2D<float>((float)l_map_pixel_data[row][col].x, (float)l_map_pixel_data[row][col].y));
+				float array_x = p.x;
+				float array_y = p.y;
+
+				if ((array_x < -10000.0) || (array_y < -10000.0))
+					fprintf(fp, "{XXX,\tXXX}, ");
+				else
+					fprintf(fp, "{%d,\t%d}, ", static_cast<int>(std::round(array_x)), static_cast<int>(std::round(array_y)));
 			}
 
 			fprintf(fp, " },\n");
@@ -762,13 +808,93 @@ void MainForm::DrawImageAndBattles()
 	}
 #endif
 
+#ifdef DRAW_BATTLES_AT_GRID_POINTS
+	// Draw "battles" at the lat lon grid points
+	{
+		MapPixelData pixel_data;
+		double lat, lon;
+
+		lat = 65.0;
+
+		for (int row = 0; row < l_array_rows; row++)
+		{
+			lon = -20.0;
+
+			for (int col = 0; col < l_array_cols; col++)
+			{
+				PenguinMaps::GetPixelLocation(lat, lon, m_timelineCanvas->GetDate(), &pixel_data);
+				memDC.DrawBitmap(battleBmp, (int)(pixel_data.x * x_scale - half_battle_image_width), (int)(pixel_data.y * y_scale - half_battle_image_height), true);
+
+				lon += 10.0;
+			}
+
+			lat -= 5.0;
+		}
+	}
+#endif
+
+#ifdef DRAW_LAT_LON_GRID
+	// Draw the lat lon grid
+	if (m_showLatLonGrid == true)
+	{
+		MapPixelData pixel_data1;
+		MapPixelData pixel_data2;
+		MapPixelData pixel_data3;
+		double lat, lon;
+
+		memDC.SetPen(wxPen(wxColor(0, 0, 0), 1)); // Red pen, 1 pixel wide
+
+		lat = 65.0;
+
+		for (int row = 0; row < l_array_rows; row++)
+		{
+			lon = -20.0;
+
+			for (int col = 0; col < l_array_cols; col++)
+			{
+//				PenguinMaps::GetPixelLocation(lat, lon, m_timelineCanvas->GetDate(), &pixel_data);
+//				memDC.DrawBitmap(battleBmp, (int)(pixel_data.x * x_scale - half_battle_image_width), (int)(pixel_data.y * y_scale - half_battle_image_height), true);
+				PenguinMaps::GetPixelLocation(lat, lon, m_timelineCanvas->GetDate(), &pixel_data1);
+				PenguinMaps::GetPixelLocation(lat, lon + 10.0, m_timelineCanvas->GetDate(), &pixel_data2);
+				PenguinMaps::GetPixelLocation(lat - 5.0, lon, m_timelineCanvas->GetDate(), &pixel_data3);
+
+				if ((pixel_data1.x > XXX) &&
+					 (pixel_data1.y > XXX) &&
+					 (pixel_data2.x > XXX) &&
+					 (pixel_data2.y > XXX))
+				{
+					memDC.DrawLine((int)(pixel_data1.x * x_scale),
+										(int)(pixel_data1.y * y_scale),
+										(int)(pixel_data2.x * x_scale),
+										(int)(pixel_data2.y * y_scale));	// from (x1, y1) to (x2, y2)
+				}
+
+				if ((pixel_data1.x > XXX) &&
+					 (pixel_data1.y > XXX) &&
+					 (pixel_data3.x > XXX) &&
+					 (pixel_data3.y > XXX))
+				{
+					memDC.DrawLine((int)(pixel_data1.x * x_scale),
+										(int)(pixel_data1.y * y_scale),
+										(int)(pixel_data3.x * x_scale),
+										(int)(pixel_data3.y * y_scale));	// from (x1, y1) to (x2, y2)
+				}
+
+				lon += 10.0;
+			}
+
+			lat -= 5.0;
+		}
+	}
+#endif
+
 #ifdef DRAW_YORK_LONDON_LAT_LON_TEST
 	// Draw a "battle" at York England (53.958332, -1.080278)
 	// You will need to change the date parameter depending on which map set you are testing (40000BC on, 362AD on, or 1483AD on)
 	{
 		MapPixelData pixel_data;
 
-		PenguinMaps::GetPixelLocation(53.958332, -1.080278, -39000.0, &pixel_data); // York, England
+		PenguinMaps::GetPixelLocation(53.958332, -1.080278, 363.0, &pixel_data); // York, England
 //		PenguinMaps::GetPixelLocation(31, 64, &pixel_data);
 		memDC.DrawBitmap(battleBmp, (int)(pixel_data.x * x_scale - half_battle_image_width), (int)(pixel_data.y * y_scale - half_battle_image_height), true);
 	}
@@ -780,6 +906,7 @@ void MainForm::DrawImageAndBattles()
 	//double startYear	= m_timelineCanvas->GetDate();
 	//double endYear		= startYear + 1;
 
+#ifdef DRAW_BATTLES
 	// in the range of the current map
 	double startYear	= m_appData->imageList[m_imageIndex].startDate;
 	double endYear		= m_appData->imageList[m_imageIndex].endDate;
@@ -796,11 +923,12 @@ void MainForm::DrawImageAndBattles()
 		//iter->mapImageXCoord = pixel_data.x;
 		//iter->mapImageYCoord = pixel_data.y;
 	}
+#endif
 
 	// 4. Deselect the bitmap so it's free to use
 	memDC.SelectObject(wxNullBitmap);
 
-	m_bitmap->SetBitmap(bitmap);	// Calling this causes a app freeze. Tried mutex but it hasnt fixed the problem.
+	m_bitmap->SetBitmap(bitmap);	// Calling this causes an app freeze. Tried mutex but it hasn't fixed the problem.
 }
 
 void MainForm::OnMainSplitterSplitterSashPosChanged(wxSplitterEvent& event)
@@ -1006,7 +1134,7 @@ void MainForm::OnGlobalCharHook(wxKeyEvent& event)
 		case 'S':
 			m_timelineCanvas->ZoomOut(step);
 			break;
-#ifdef DRAW_PENGUIN_LAT_LON_MAPPING_ARRAY
+#ifdef GENERATE_LAT_LON_MAPPING_ARRAY
 		case 'J':
 			m_image_requires_update = true;
 			m_oldImageId = -1;
@@ -1037,7 +1165,7 @@ void MainForm::OnGlobalCharHook(wxKeyEvent& event)
 			m_oldImageId = -1;
 			l_array_x_scale += 0.01f;
 			break;
-		case 80:	// 'p'
+		case 'P':	// 'p'
 			m_image_requires_update = true;
 			m_oldImageId = -1;
 			l_array_y_scale -= 0.01f;
@@ -1046,6 +1174,16 @@ void MainForm::OnGlobalCharHook(wxKeyEvent& event)
 			m_image_requires_update = true;
 			m_oldImageId = -1;
 			l_array_y_scale += 0.01f;
+			break;
+		case 'U': // 'u'
+			m_image_requires_update = true;
+			m_oldImageId = -1;
+			l_array_rotation_degrees -= 0.333f;
+			break;
+		case 'O': // 'o'
+			m_image_requires_update = true;
+			m_oldImageId = -1;
+			l_array_rotation_degrees += 0.333f;
 			break;
 #endif
 		default: break;
@@ -1162,6 +1300,11 @@ void MainForm::OnBitmapMotion(wxMouseEvent& event)
 {
 	if (m_imageIndex != -1)
 	{
+		if (m_shrunkImg.IsOk() == false)
+		{
+			return;
+		}
+
 		int mouseX = event.GetX();
 		int mouseY = event.GetY();
 //		int mouseY = h - event.GetY() - 1;
@@ -1391,7 +1534,7 @@ void MainForm::OnPrevButtonButtonClick(wxCommandEvent& event)
 {
 	if (m_appData->imageList.empty() == false)
 	{
-		if (m_imageIndex == 0)
+		if (m_imageIndex <= 0)
 		{
 			m_imageIndex = (int)m_appData->imageList.size();
 		}
@@ -1430,6 +1573,16 @@ void MainForm::OnSlideshowDisplayTimeSpinCtrlSpinCtrl(wxSpinEvent& event)
 		m_slideshowTimer.Stop();
 		m_slideshowTimer.Start(m_slideshowDisplayTimeSpinCtrl->GetValue() * l_slideshowTimerInterval);
 	}
+
+	event.Skip();
+}
+
+void MainForm::OnShowLatLonMenuItemMenuSelection(wxCommandEvent& event)
+{
+	m_showLatLonGrid = event.IsChecked();
+
+	m_image_requires_update = true;
+	m_oldImageId = -1;
 
 	event.Skip();
 }
