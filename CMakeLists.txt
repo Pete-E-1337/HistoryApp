@@ -199,8 +199,75 @@ find_package(wxWidgets)
 include(${wxWidgets_USE_FILE})
 
 # extra lib
-svs_add_to_target_lib(wxmsw32ud_core.lib wxbase32ud.lib wxbase32ud_net.lib wxbase32ud_xml.lib wxmsw32ud_adv.lib wxmsw32ud_aui.lib wxmsw32ud_gl.lib wxmsw32ud_html.lib wxmsw32ud_media.lib wxmsw32ud_propgrid.lib wxmsw32ud_ribbon.lib wxmsw32ud_richtext.lib wxmsw32ud_stc.lib wxmsw32ud_webview.lib wxmsw32ud_xrc.lib)
+svs_add_to_target_lib(
+	$<$<CONFIG:Debug>:wxmsw32ud_core.lib>
+	$<$<CONFIG:Debug>:wxbase32ud.lib>
+	$<$<CONFIG:Debug>:wxbase32ud_net.lib>
+	$<$<CONFIG:Debug>:wxbase32ud_xml.lib>
+	$<$<CONFIG:Debug>:wxmsw32ud_adv.lib>
+	$<$<CONFIG:Debug>:wxmsw32ud_aui.lib>
+	$<$<CONFIG:Debug>:wxmsw32ud_gl.lib>
+	$<$<CONFIG:Debug>:wxmsw32ud_html.lib>
+	$<$<CONFIG:Debug>:wxmsw32ud_media.lib>
+	$<$<CONFIG:Debug>:wxmsw32ud_propgrid.lib>
+	$<$<CONFIG:Debug>:wxmsw32ud_ribbon.lib>
+	$<$<CONFIG:Debug>:wxmsw32ud_richtext.lib>
+	$<$<CONFIG:Debug>:wxmsw32ud_stc.lib>
+	$<$<CONFIG:Debug>:wxmsw32ud_webview.lib>
+	$<$<CONFIG:Debug>:wxmsw32ud_xrc.lib>
+)
 
+svs_add_to_target_lib(
+	$<$<CONFIG:Release>:wxmsw32u_core.lib>
+	$<$<CONFIG:Release>:wxbase32u.lib>
+	$<$<CONFIG:Release>:wxbase32u_net.lib>
+	$<$<CONFIG:Release>:wxbase32u_xml.lib>
+	$<$<CONFIG:Release>:wxmsw32u_adv.lib>
+	$<$<CONFIG:Release>:wxmsw32u_aui.lib>
+	$<$<CONFIG:Release>:wxmsw32u_gl.lib>
+	$<$<CONFIG:Release>:wxmsw32u_html.lib>
+	$<$<CONFIG:Release>:wxmsw32u_media.lib>
+	$<$<CONFIG:Release>:wxmsw32u_propgrid.lib>
+	$<$<CONFIG:Release>:wxmsw32u_ribbon.lib>
+	$<$<CONFIG:Release>:wxmsw32u_richtext.lib>
+	$<$<CONFIG:Release>:wxmsw32u_stc.lib>
+	$<$<CONFIG:Release>:wxmsw32u_webview.lib>
+	$<$<CONFIG:Release>:wxmsw32u_xrc.lib>
+)
+
+
+#target_link_libraries(History PRIVATE 
+#    $<$<CONFIG:Debug>:wxmsw32ud_core.lib>
+#    $<$<CONFIG:Debug>:wxbase32ud.lib>
+#    $<$<CONFIG:Debug>:wxbase32ud_net.lib>
+#    $<$<CONFIG:Debug>:wxbase32ud_xml.lib>
+#    $<$<CONFIG:Debug>:wxmsw32ud_adv.lib>
+#    $<$<CONFIG:Debug>:wxmsw32ud_aui.lib>
+#    $<$<CONFIG:Debug>:wxmsw32ud_gl.lib>
+#    $<$<CONFIG:Debug>:wxmsw32ud_html.lib>
+#    $<$<CONFIG:Debug>:wxmsw32ud_media.lib>
+#    $<$<CONFIG:Debug>:wxmsw32ud_propgrid.lib>
+#    $<$<CONFIG:Debug>:wxmsw32ud_ribbon.lib>
+#    $<$<CONFIG:Debug>:wxmsw32ud_richtext.lib>
+#    $<$<CONFIG:Debug>:wxmsw32ud_stc.lib>
+#    $<$<CONFIG:Debug>:wxmsw32ud_webview.lib>
+#    $<$<CONFIG:Debug>:wxmsw32ud_xrc.lib>
+#    $<$<CONFIG:Release>:wxmsw32u_core.lib>
+#    $<$<CONFIG:Release>:wxbase32u.lib>
+#    $<$<CONFIG:Release>:wxbase32u_net.lib>
+#    $<$<CONFIG:Release>:wxbase32u_xml.lib>
+#    $<$<CONFIG:Release>:wxmsw32u_adv.lib>
+#    $<$<CONFIG:Release>:wxmsw32u_aui.lib>
+#    $<$<CONFIG:Release>:wxmsw32u_gl.lib>
+#    $<$<CONFIG:Release>:wxmsw32u_html.lib>
+#    $<$<CONFIG:Release>:wxmsw32u_media.lib>
+#    $<$<CONFIG:Release>:wxmsw32u_propgrid.lib>
+#    $<$<CONFIG:Release>:wxmsw32u_ribbon.lib>
+#    $<$<CONFIG:Release>:wxmsw32u_richtext.lib>
+#    $<$<CONFIG:Release>:wxmsw32u_stc.lib>
+#    $<$<CONFIG:Release>:wxmsw32u_webview.lib>
+#    $<$<CONFIG:Release>:wxmsw32u_xrc.lib>
+#)
 
 
 # Imports ---------------------------------------------------------------------

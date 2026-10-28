@@ -29,12 +29,12 @@ SVS_WARNING_DISABLE(4101) // unreferenced local variable
 
 //#define ENABLE_DEBUGGING_GUI
 #define DRAW_BATTLES	// Should be activated normally but allow disabling for debugging purposes
+#define DRAW_LAT_LON_GRID
 
 #ifdef _DEBUG
 #define DRAW_DEBUG_TEXT
 //#define GENERATE_LAT_LON_MAPPING_ARRAY
 //#define DRAW_BATTLES_AT_GRID_POINTS
-#define DRAW_LAT_LON_GRID
 //#define DRAW_YORK_LONDON_LAT_LON_TEST	// Remember to set the year for the map you want to compare it to
 #endif
 
