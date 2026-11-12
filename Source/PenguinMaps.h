@@ -107,7 +107,7 @@ public:
 
 	static int GetMapWidth() { return 2570; }
 	static int GetMapHeight() { return 2088; }
-	static void GetPixelLocation(double lat, double lon, double date, MapPixelData* pixel_data);
+	static bool GetPixelLocation(double lat, double lon, double date, MapPixelData* pixel_data);
 
 private:
 	static int GetArrayRowIndexForLat(double lat);	// For a given lat, give the row index of the lower bounding latitude

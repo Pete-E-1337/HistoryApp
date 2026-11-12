@@ -56,7 +56,8 @@ bool HistoryApp::OnInit()
 #ifdef _DEBUG
    SVS::Log().SetFileName(std::string("_DEBUG_HistoryAppLog") + ".txt");
 #else
-   SVS::Log().SetFileName("HistoryAppLog_" + FormatFilenameSafeTimeString(datetimeNow()) + ".txt");
+//   SVS::Log().SetFileName("HistoryAppLog_" + FormatFilenameSafeTimeString(datetimeNow()) + ".txt");
+   SVS::Log().SetFileName(std::string("HistoryAppLog_") + ".txt");
 #endif
 
 	SVS::Log() << "HistoryApp.exe started" << std::endl;

@@ -110,14 +110,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	
 	m_staticText3 = new wxStaticText( m_panel7, wxID_ANY, wxT("Date"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText3->Wrap( -1 );
-	fgSizer6->Add( m_staticText3, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
-	
-	m_dateLeftStaticText = new wxStaticText( m_panel7, wxID_ANY, wxT("◄"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_dateLeftStaticText->Wrap( -1 );
-	m_dateLeftStaticText->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxEmptyString ) );
-	m_dateLeftStaticText->Hide();
-	
-	fgSizer6->Add( m_dateLeftStaticText, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+	fgSizer6->Add( m_staticText3, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 	
 	m_dateLeftButton = new wxButton( m_panel7, wxID_ANY, wxT("◄"), wxDefaultPosition, wxSize( 12,-1 ), 0|wxNO_BORDER );
 	m_dateLeftButton->SetFont( wxFont( 10, 70, 90, 90, false, wxEmptyString ) );
@@ -134,12 +127,24 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	
 	fgSizer6->Add( m_dateRightButton, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 	
-	m_dateRightStaticText = new wxStaticText( m_panel7, wxID_ANY, wxT("►"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_dateRightStaticText->Wrap( -1 );
-	m_dateRightStaticText->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxEmptyString ) );
-	m_dateRightStaticText->Hide();
 	
-	fgSizer6->Add( m_dateRightStaticText, 0, wxALIGN_CENTER_VERTICAL|wxRIGHT, 5 );
+	fgSizer6->Add( 5, 0, 1, wxEXPAND, 5 );
+	
+	m_battleLeftButton = new wxButton( m_panel7, wxID_ANY, wxT("◄"), wxDefaultPosition, wxSize( 12,-1 ), 0|wxNO_BORDER );
+	m_battleLeftButton->SetFont( wxFont( 10, 70, 90, 90, false, wxEmptyString ) );
+	m_battleLeftButton->SetBackgroundColour( wxColour( 208, 208, 208 ) );
+	
+	fgSizer6->Add( m_battleLeftButton, 0, wxALL, 5 );
+	
+	m_battleStaticText = new wxStaticText( m_panel7, wxID_ANY, wxT("Battle"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_battleStaticText->Wrap( -1 );
+	fgSizer6->Add( m_battleStaticText, 0, wxALIGN_CENTER_VERTICAL, 5 );
+	
+	m_battleRightButton = new wxButton( m_panel7, wxID_ANY, wxT("►"), wxDefaultPosition, wxSize( 12,-1 ), 0|wxNO_BORDER );
+	m_battleRightButton->SetFont( wxFont( 10, 70, 90, 90, false, wxEmptyString ) );
+	m_battleRightButton->SetBackgroundColour( wxColour( 208, 208, 208 ) );
+	
+	fgSizer6->Add( m_battleRightButton, 0, wxALL, 5 );
 	
 	
 	m_panel7->SetSizer( fgSizer6 );
@@ -413,6 +418,11 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_showLatLonMenuItem = new wxMenuItem( m_preferncesMenu, wxID_ANY, wxString( wxT("Show Lat/Lon Grid") ) , wxEmptyString, wxITEM_CHECK );
 	m_preferncesMenu->Append( m_showLatLonMenuItem );
 	
+	wxMenuItem* m_showBattlesMenuItem;
+	m_showBattlesMenuItem = new wxMenuItem( m_preferncesMenu, wxID_ANY, wxString( wxT("Show Battles") ) , wxEmptyString, wxITEM_CHECK );
+	m_preferncesMenu->Append( m_showBattlesMenuItem );
+	m_showBattlesMenuItem->Check( true );
+	
 	m_menuBar->Append( m_preferncesMenu, wxT("Preferences") ); 
 	
 	this->SetMenuBar( m_menuBar );
@@ -429,7 +439,6 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_googleSearchButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnGoogleSearchButtonButtonClick ), NULL, this );
 	m_wikipediaSearchButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnWikipediaSearchButtonButtonClick ), NULL, this );
 	m_mapSearchButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnMapSearchButtonButtonClick ), NULL, this );
-	m_dateLeftStaticText->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateLeftStaticTextLeftDown ), NULL, this );
 	m_dateLeftButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDateLeftButtonButtonClick ), NULL, this );
 	m_dateTextCtrl->Connect( wxEVT_KILL_FOCUS, wxFocusEventHandler( MainForm::OnDateTextCtrlKillFocus ), NULL, this );
 	m_dateTextCtrl->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateTextCtrlLeftDown ), NULL, this );
@@ -437,7 +446,8 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_dateTextCtrl->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainForm::OnDateTextCtrlOnText ), NULL, this );
 	m_dateTextCtrl->Connect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainForm::OnDateTextCtrlTextEnter ), NULL, this );
 	m_dateRightButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDateRightButtonButtonClick ), NULL, this );
-	m_dateRightStaticText->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateRightStaticTextLeftDown ), NULL, this );
+	m_battleLeftButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnBattleLeftButtonButtonClick ), NULL, this );
+	m_battleRightButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnBattleRightButtonButtonClick ), NULL, this );
 	m_timelineZoomSlider->Connect( wxEVT_SCROLL_TOP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
 	m_timelineZoomSlider->Connect( wxEVT_SCROLL_BOTTOM, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
 	m_timelineZoomSlider->Connect( wxEVT_SCROLL_LINEUP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
@@ -479,6 +489,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	this->Connect( MAIN_SLIDESHOW_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnSlideshowTimer ) );
 	this->Connect( MAIN_RENDER_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnRenderTickTimer ) );
 	this->Connect( m_showLatLonMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainForm::OnShowLatLonMenuItemMenuSelection ) );
+	this->Connect( m_showBattlesMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainForm::OnShowBattlesMenuItemMenuSelection ) );
 }
 
 MainForm::~MainForm()
@@ -492,7 +503,6 @@ MainForm::~MainForm()
 	m_googleSearchButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnGoogleSearchButtonButtonClick ), NULL, this );
 	m_wikipediaSearchButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnWikipediaSearchButtonButtonClick ), NULL, this );
 	m_mapSearchButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnMapSearchButtonButtonClick ), NULL, this );
-	m_dateLeftStaticText->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateLeftStaticTextLeftDown ), NULL, this );
 	m_dateLeftButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDateLeftButtonButtonClick ), NULL, this );
 	m_dateTextCtrl->Disconnect( wxEVT_KILL_FOCUS, wxFocusEventHandler( MainForm::OnDateTextCtrlKillFocus ), NULL, this );
 	m_dateTextCtrl->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateTextCtrlLeftDown ), NULL, this );
@@ -500,7 +510,8 @@ MainForm::~MainForm()
 	m_dateTextCtrl->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainForm::OnDateTextCtrlOnText ), NULL, this );
 	m_dateTextCtrl->Disconnect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainForm::OnDateTextCtrlTextEnter ), NULL, this );
 	m_dateRightButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDateRightButtonButtonClick ), NULL, this );
-	m_dateRightStaticText->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( MainForm::OnDateRightStaticTextLeftDown ), NULL, this );
+	m_battleLeftButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnBattleLeftButtonButtonClick ), NULL, this );
+	m_battleRightButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnBattleRightButtonButtonClick ), NULL, this );
 	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_TOP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
 	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_BOTTOM, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
 	m_timelineZoomSlider->Disconnect( wxEVT_SCROLL_LINEUP, wxScrollEventHandler( MainForm::OnTimelineZoomSliderScroll ), NULL, this );
@@ -542,6 +553,7 @@ MainForm::~MainForm()
 	this->Disconnect( MAIN_SLIDESHOW_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnSlideshowTimer ) );
 	this->Disconnect( MAIN_RENDER_TIMER, wxEVT_TIMER, wxTimerEventHandler( MainForm::OnRenderTickTimer ) );
 	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainForm::OnShowLatLonMenuItemMenuSelection ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainForm::OnShowBattlesMenuItemMenuSelection ) );
 	
 }
 

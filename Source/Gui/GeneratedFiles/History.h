@@ -68,11 +68,12 @@ namespace History
 			wxButton* m_mapSearchButton;
 			wxPanel* m_panel7;
 			wxStaticText* m_staticText3;
-			wxStaticText* m_dateLeftStaticText;
 			wxButton* m_dateLeftButton;
 			wxTextCtrl* m_dateTextCtrl;
 			wxButton* m_dateRightButton;
-			wxStaticText* m_dateRightStaticText;
+			wxButton* m_battleLeftButton;
+			wxStaticText* m_battleStaticText;
+			wxButton* m_battleRightButton;
 			wxPanel* m_panel17;
 			wxStaticText* m_staticText4;
 			wxSlider* m_timelineZoomSlider;
@@ -115,7 +116,6 @@ namespace History
 			virtual void OnGoogleSearchButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnWikipediaSearchButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnMapSearchButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
-			virtual void OnDateLeftStaticTextLeftDown( wxMouseEvent& event ) { event.Skip(); }
 			virtual void OnDateLeftButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnDateTextCtrlKillFocus( wxFocusEvent& event ) { event.Skip(); }
 			virtual void OnDateTextCtrlLeftDown( wxMouseEvent& event ) { event.Skip(); }
@@ -123,7 +123,8 @@ namespace History
 			virtual void OnDateTextCtrlOnText( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnDateTextCtrlTextEnter( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnDateRightButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
-			virtual void OnDateRightStaticTextLeftDown( wxMouseEvent& event ) { event.Skip(); }
+			virtual void OnBattleLeftButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnBattleRightButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnTimelineZoomSliderScroll( wxScrollEvent& event ) { event.Skip(); }
 			virtual void OnPrevButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
 			virtual void OnPauseButtonButtonClick( wxCommandEvent& event ) { event.Skip(); }
@@ -141,6 +142,7 @@ namespace History
 			virtual void OnSlideshowTimer( wxTimerEvent& event ) { event.Skip(); }
 			virtual void OnRenderTickTimer( wxTimerEvent& event ) { event.Skip(); }
 			virtual void OnShowLatLonMenuItemMenuSelection( wxCommandEvent& event ) { event.Skip(); }
+			virtual void OnShowBattlesMenuItemMenuSelection( wxCommandEvent& event ) { event.Skip(); }
 			
 		
 		public:

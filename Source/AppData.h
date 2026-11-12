@@ -50,9 +50,10 @@ typedef struct BattleData
 	int				id;
 } BattleData;
 
-typedef std::vector<BattleData>		BattleList;
-typedef BattleList::iterator			BattleListIter;
-typedef BattleList::const_iterator	BattletListConstIter;
+typedef std::vector<BattleData>			BattleList;
+typedef BattleList::iterator				BattleListIter;
+typedef BattleList::reverse_iterator	BattleListReverseIter;
+typedef BattleList::const_iterator		BattletListConstIter;
 
 class AppData
 {

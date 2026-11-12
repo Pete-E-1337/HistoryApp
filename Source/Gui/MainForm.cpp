@@ -29,13 +29,16 @@ SVS_WARNING_DISABLE(4101) // unreferenced local variable
 
 //#define ENABLE_DEBUGGING_GUI
 #define DRAW_BATTLES	// Should be activated normally but allow disabling for debugging purposes
+#define USE_GREY_FOR_INACTIVE_BATTLES
 #define DRAW_LAT_LON_GRID
 
 #ifdef _DEBUG
 #define DRAW_DEBUG_TEXT
 //#define GENERATE_LAT_LON_MAPPING_ARRAY
 //#define DRAW_BATTLES_AT_GRID_POINTS
+//#define DRAW_DEBUG_BOX_AROUND_BATTLE
 //#define DRAW_YORK_LONDON_LAT_LON_TEST	// Remember to set the year for the map you want to compare it to
+//#define DO_IMAGE_ALIGNMENT
 #endif
 
 //#define USE_INTERNAL_BROWSER
@@ -48,9 +51,7 @@ const char*				l_settingsFilename				= "settings.txt";
 //const char*				l_historyFilename					= "Data/75_significant_history_events.csv";
 const char*				l_historyFilename					= "Data/x_significant_history_events.csv";
 //static const double	l_startingDate						= -2560.0;	// pyramid of giza
-static const double	l_startingDate						= -40000.0;	// debug
-//static const double	l_startingDate						= 651.0;	// debug
-//static const double	l_startingDate						= 1980.0;	// debug
+static const double	l_startingDate						= 1913.0;	// debug
 static const int		l_guiTimerInterval				= 300;
 static const int		l_imageTimerInterval				= 300;
 static const int		l_renderTimerInterval			= 40;
@@ -66,6 +67,7 @@ static const double	l_minimumEventTime				= l_oneMonth;
 static const int		l_explosionImageSize				= 24;
 
 wxImage l_explosionImage;
+wxImage l_transparentExplosionImage;
 
 #ifdef GENERATE_LAT_LON_MAPPING_ARRAY
 // original
@@ -121,6 +123,36 @@ MainForm::MainForm(wxWindow* parent, AppData* appData) :
 	l_explosionImage.LoadFile("explosion4.png", wxBITMAP_TYPE_PNG);
 	l_explosionImage = l_explosionImage.Scale(l_explosionImageSize, l_explosionImageSize, wxIMAGE_QUALITY_HIGH);
 
+	l_transparentExplosionImage = l_explosionImage.Copy();
+//	l_transparentExplosionImage.InitAlpha();	// No need as it the image already has an alpha channel
+
+	int width	= l_transparentExplosionImage.GetWidth();
+	int height	= l_transparentExplosionImage.GetHeight();
+
+	unsigned char* data	= l_transparentExplosionImage.GetData();
+	unsigned char* alpha	= l_transparentExplosionImage.GetAlpha();
+
+	for (int y = 0; y < height; ++y)
+	{
+		for (int x = 0; x < width; ++x)
+		{
+			int i = (y * width + x);
+
+#ifdef USE_GREY_FOR_INACTIVE_BATTLES
+			unsigned char greyscalePixel = (data[i * 3] + data[i * 3 + 1] + data[i * 3 + 2]) / 3;
+			data[i * 3]     = greyscalePixel;	// Red
+			data[i * 3 + 1] = greyscalePixel;   // Green
+			data[i * 3 + 2] = greyscalePixel;   // Blue
+
+			// Set semi-transparency (e.g., 128 = 50% opacity)
+//			alpha[i] = alpha[i] / 2; 
+#else
+			// Set semi-transparency (e.g., 128 = 50% opacity)
+			alpha[i] = alpha[i] / 2; 
+#endif
+		}
+	}
+
 	//// load a bitmap
 	//{
 	//	wxBitmap bitmap(wxT("Data/Images/362AD.jpg"), wxBITMAP_TYPE_JPEG);
@@ -142,10 +174,10 @@ MainForm::MainForm(wxWindow* parent, AppData* appData) :
 
 	m_dateTextCtrl->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 
-//	m_dateLeftStaticText->SetLabel(wxString::FromUTF8(u8"◄")); // \u25C4
-//	m_dateRightStaticText->SetLabel(wxString::FromUTF8(u8"►")); // \u25BA
 	m_dateLeftButton->SetLabel(wxString::FromUTF8(u8"◄")); // \u25C4
 	m_dateRightButton->SetLabel(wxString::FromUTF8(u8"►")); // \u25BA
+	m_battleLeftButton->SetLabel(wxString::FromUTF8(u8"◄")); // \u25C4
+	m_battleRightButton->SetLabel(wxString::FromUTF8(u8"►")); // \u25BA
 	m_prevButton->SetLabel("l" + wxString::FromUTF8(u8"◄"));
 	m_pauseButton->SetLabel("ll");
 	m_playButton->SetLabel(wxString::FromUTF8(u8"►"));
@@ -154,7 +186,8 @@ MainForm::MainForm(wxWindow* parent, AppData* appData) :
 	m_timelineDateScrollBar->SetScrollbar(5000, 1, 10000, 10, true);
 	//m_timelineZoomScrollBar->SetScrollbar(1, 1, 10000, 10, true); // no longer visible
 
-	//m_timelineZoomSlider->Set
+	m_timelineZoomSlider->SetPageSize(1);	// page keys and clicks (coarse adjustments)
+	m_timelineZoomSlider->SetLineSize(1);	// arrow keys (fine adjustments)
 //	std::string str = std::to_string(std::lround(m_timelineCanvas->GetZoom() * 6.0)) + " years";
 	//int w, h;
 	//double aspect_ratio;
@@ -241,9 +274,9 @@ MainForm::~MainForm()
 
 void MainForm::Initialise()
 {
-	//{
-	//	DoImageAlignment();
-	//}
+#ifdef DO_IMAGE_ALIGNMENT
+//	DoImageAlignment();
+#endif
 
 	wxToolTip::SetAutoPop(24 * 60 * 60 * 1000);	// This is global which is not ideal. Maybe remove it if i end up using a wxRichToolTip
 
@@ -437,6 +470,7 @@ void MainForm::OnDateTextCtrlTextEnter(wxCommandEvent& event)
 	m_image_requires_update			= true;
 
 	SetTimelineDateScrollBarPositionFromDate((double)date);
+	CheckForCurrentYearBattleIndexChange();
 
 	SetFocus();
 
@@ -516,6 +550,7 @@ void MainForm::UpdateDateScrollbar()
 
 		SetTimelineDateScrollBarPositionFromDate(m_timelineCanvas->GetDate());
 		m_image_requires_update = true;
+		CheckForCurrentYearBattleIndexChange();
 	}
 }
 
@@ -563,7 +598,7 @@ void MainForm::DeferredBitmapUpdate(bool image_found)
 {
 	if (image_found)
 	{
-//		m_bitmap->SetBitmap(m_shrunkImg);	// Calling this causes a app freeze. Tried mutex but it hasnt fixed the problem.
+//		m_bitmap->SetBitmap(m_shrunkImg);
 
 		DrawImageAndBattles();
 
@@ -660,7 +695,7 @@ void MainForm::UpdateImage(bool calledFromGUI)
 
 						if (calledFromGUI == true)
 						{
-//							m_bitmap->SetBitmap(m_shrunkImg);	// Calling this causes a app freeze. Tried mutex but it hasnt fixed the problem.
+//							m_bitmap->SetBitmap(m_shrunkImg);
 
 							DrawImageAndBattles();
 
@@ -717,11 +752,177 @@ void MainForm::UpdateImage(bool calledFromGUI)
 	}
 }
 
+void MainForm::CheckForCurrentYearBattleIndexChange()
+{
+	if (m_showBattles == false)
+		return;
+
+	if (m_displayedBattleList.empty() == true)
+		return;
+
+//	int currentYear = static_cast<int>(m_timelineCanvas->GetDate());
+	int currentYear = static_cast<int>(std::floor(m_timelineCanvas->GetDate()));
+	int battleId = -1;
+
+//	double startYear	= m_appData->imageList[m_imageIndex].startDate;
+//	double endYear		= m_appData->imageList[m_imageIndex].endDate;
+	int battleYear;
+
+	for (BattleListIter iter = m_appData->battleList.begin(); iter != m_appData->battleList.end(); iter++)
+//	for (BattleListIter iter = m_displayedBattleList.begin(); iter != m_displayedBattleList.end(); iter++)
+	{
+//		battleYear = (iter->startDate < 0.0) ? static_cast<int>(iter->startDate - 1.0) : static_cast<int>(iter->startDate);
+		battleYear = static_cast<int>(std::floor(iter->startDate));
+
+//		if (static_cast<int>(iter->startDate) == currentYear)
+		if (battleYear == currentYear)
+		{
+			battleId = iter->id;
+			break;
+		}
+	}
+
+	if (battleId != m_oldbattleId)
+	{
+		// schedule an image update so that battles are redrawn
+		m_image_requires_update = true;
+		m_oldImageId = -1;
+
+		m_oldbattleId = battleId;
+	}
+}
+
+void MainForm::GoToNextBattle()
+{
+	//double date = m_timelineCanvas->GetDate();
+
+	//for (BattleListIter iter = m_appData->battleList.begin(); iter != m_appData->battleList.end(); iter++)
+	//{
+	//	if (iter->startDate > date)
+	//	{
+	//		m_timelineCanvas->SetDate(iter->startDate);
+	//		m_appData->updateDateScrollbar = true;
+	//		break;
+	//	}
+	//}
+
+	int battleYear;
+	int imageIndex;
+
+	double date = m_timelineCanvas->GetDate() + 1.0;
+
+	if (m_imageIndex != -1)
+	{
+		double endYear	= m_appData->imageList[m_imageIndex].endDate;
+
+		date = std::min(date, endYear);	// don't skip partial year maps eg. 1914
+	}
+
+	for (BattleListIter iter = m_appData->battleList.begin(); iter != m_appData->battleList.end(); iter++)
+	{
+		battleYear = static_cast<int>(std::floor(iter->startDate));
+
+		if (iter->startDate >= date)
+		{
+			if (DoesDateHaveAnAssociatedImage(iter->startDate, imageIndex) == false)
+				continue;	// Skip this battle if there's no map image to display the battle on
+
+//			if ((iter->mapImageXCoord == XXX) || (iter->mapImageXCoord == XXX))
+			if ((SVS::Math::InRange(iter->mapImageXCoord, 0, PenguinMaps::GetMapWidth()) == false) ||
+				 (SVS::Math::InRange(iter->mapImageYCoord, 0, PenguinMaps::GetMapHeight()) == false))
+				continue;	// Skip this battle if the battles coordinates are not visible on this map image
+
+			assert(imageIndex != -1); // Shouldn't be possible because we "continued" when DoesDateHaveAnAssociatedImage was false
+
+			if (m_appData->imageList[imageIndex].startDate > battleYear)
+				m_timelineCanvas->SetDate(m_appData->imageList[imageIndex].startDate);
+			else
+				m_timelineCanvas->SetDate(battleYear);
+
+			m_appData->updateDateScrollbar = true;
+			break;
+		}
+	}
+}
+
+void MainForm::GoToPreviousBattle()
+{
+	//double date = m_timelineCanvas->GetDate();
+
+	//for (BattleListReverseIter iter = m_appData->battleList.rbegin(); iter != m_appData->battleList.rend(); iter++)
+	//{
+	//	if (iter->startDate < date)
+	//	{
+	//		m_timelineCanvas->SetDate(iter->startDate);
+	//		m_appData->updateDateScrollbar = true;
+	//		break;
+	//	}
+	//}
+
+	int battleYear;
+	int imageIndex;
+
+	double date = m_timelineCanvas->GetDate() - 1.0;
+
+	if (m_imageIndex != -1)
+	{
+		double startYear	= m_appData->imageList[m_imageIndex].startDate;
+
+		date = std::max(date, startYear);	// don't skip partial year maps eg. 1914
+	}
+
+	for (BattleListReverseIter iter = m_appData->battleList.rbegin(); iter != m_appData->battleList.rend(); iter++)
+	{
+		battleYear = static_cast<int>(std::floor(iter->startDate));
+
+		if (iter->startDate <= date)
+		{
+			if (DoesDateHaveAnAssociatedImage(iter->startDate, imageIndex) == false)
+				continue;
+
+//			if ((iter->mapImageXCoord == XXX) || (iter->mapImageXCoord == XXX))
+			if ((SVS::Math::InRange(iter->mapImageXCoord, 0, PenguinMaps::GetMapWidth()) == false) ||
+				 (SVS::Math::InRange(iter->mapImageYCoord, 0, PenguinMaps::GetMapHeight()) == false))
+				continue;
+
+			assert(imageIndex != -1); // Shouldn't be possible because we "continued" when DoesDateHaveAnAssociatedImage was false
+
+			if (m_appData->imageList[imageIndex].startDate > battleYear)
+				m_timelineCanvas->SetDate(m_appData->imageList[imageIndex].startDate);
+			else
+				m_timelineCanvas->SetDate(battleYear);
+
+			m_appData->updateDateScrollbar = true;
+			break;
+		}
+	}
+}
+
+bool MainForm::DoesDateHaveAnAssociatedImage(double date, int& imageIndex)
+{
+	int i = 0;
+
+	imageIndex = -1;
+
+	for (TimeLineEventListConstIter iter = m_appData->imageList.begin(); iter != m_appData->imageList.end(); iter++)
+	{
+		if (SVS::Math::InRange(date, iter->startDate, iter->endDate) == true)
+		{
+			imageIndex = i;
+			return true;
+		}
+
+		i++;
+	}
+
+	return false;
+}
+
 void MainForm::DrawImageAndBattles()
 {
-	//if (m_imageIndex == -1)
-	//	return;
-	assert(m_imageIndex != -1);
+	if (m_imageIndex == -1)
+		return;
+//	assert(m_imageIndex != -1);
 
 //	wxBitmap battleBmp("explosion.png", wxBITMAP_TYPE_PNG);
 	wxBitmap battleBmp(l_explosionImage);
@@ -743,12 +944,12 @@ void MainForm::DrawImageAndBattles()
 
 //	memDC.DrawBitmap(foregroundBmp, 100, 100, true);
 
-	int w = bitmap.GetWidth();
-	int h = bitmap.GetHeight();
-	float x_scale = (float)w / (float)2570;
-	float y_scale = (float)h / (float)2088;
-	int half_battle_image_width	= battleBmp.GetWidth() / 2;
-	int half_battle_image_height	= battleBmp.GetHeight() / 2;
+	int width = bitmap.GetWidth();
+	int height = bitmap.GetHeight();
+	float x_scale = width / (float)PenguinMaps::GetMapWidth();
+	float y_scale = height / (float)PenguinMaps::GetMapHeight();
+	float half_battle_image_width		= battleBmp.GetWidth() / 2.0f;
+	float half_battle_image_height	= battleBmp.GetHeight() / 2.0f;
 
 #ifdef GENERATE_LAT_LON_MAPPING_ARRAY
 	SVS::Matrix3<float> m;
@@ -842,7 +1043,7 @@ void MainForm::DrawImageAndBattles()
 		MapPixelData pixel_data3;
 		double lat, lon;
 
-		memDC.SetPen(wxPen(wxColor(0, 0, 0), 1)); // Red pen, 1 pixel wide
+		memDC.SetPen(wxPen(wxColor(0, 0, 0), 1)); // Black pen, 1 pixel wide
 
 		lat = 65.0;
 
@@ -852,8 +1053,6 @@ void MainForm::DrawImageAndBattles()
 
 			for (int col = 0; col < l_array_cols; col++)
 			{
-//				PenguinMaps::GetPixelLocation(lat, lon, m_timelineCanvas->GetDate(), &pixel_data);
-//				memDC.DrawBitmap(battleBmp, (int)(pixel_data.x * x_scale - half_battle_image_width), (int)(pixel_data.y * y_scale - half_battle_image_height), true);
 				PenguinMaps::GetPixelLocation(lat, lon, m_timelineCanvas->GetDate(), &pixel_data1);
 				PenguinMaps::GetPixelLocation(lat, lon + 10.0, m_timelineCanvas->GetDate(), &pixel_data2);
 				PenguinMaps::GetPixelLocation(lat - 5.0, lon, m_timelineCanvas->GetDate(), &pixel_data3);
@@ -895,7 +1094,6 @@ void MainForm::DrawImageAndBattles()
 		MapPixelData pixel_data;
 
 		PenguinMaps::GetPixelLocation(53.958332, -1.080278, 363.0, &pixel_data); // York, England
-//		PenguinMaps::GetPixelLocation(31, 64, &pixel_data);
 		memDC.DrawBitmap(battleBmp, (int)(pixel_data.x * x_scale - half_battle_image_width), (int)(pixel_data.y * y_scale - half_battle_image_height), true);
 	}
 #endif
@@ -907,28 +1105,82 @@ void MainForm::DrawImageAndBattles()
 	//double endYear		= startYear + 1;
 
 #ifdef DRAW_BATTLES
-	// in the range of the current map
-	double startYear	= m_appData->imageList[m_imageIndex].startDate;
-	double endYear		= m_appData->imageList[m_imageIndex].endDate;
-
-	for (BattleListIter iter = m_appData->battleList.begin(); iter != m_appData->battleList.end(); iter++)
+	if (m_showBattles == true)
 	{
-//		if (SVS::Math::InRange(iter->startDate, startYear, endYear) == true)
-		if (SVS::Math::InRange(iter->startDate, startYear, endYear) == true)
+		// in the range of the current map
+		double startYear	= m_appData->imageList[m_imageIndex].startDate;
+		double endYear		= m_appData->imageList[m_imageIndex].endDate;
+//		int currentYear	= static_cast<int>(m_timelineCanvas->GetDate());
+		int currentYear	= static_cast<int>(std::floor(m_timelineCanvas->GetDate()));
+
+		memDC.SetPen(wxPen(wxColor(0, 0, 0), 1)); // Black pen, 1 pixel wide
+		memDC.SetBrush(*wxTRANSPARENT_BRUSH);
+		MapPixelData p1;
+		MapPixelData p2;
+		int battleYear;
+
+		for (BattleListIter iter = m_appData->battleList.begin(); iter != m_appData->battleList.end(); iter++)
 		{
-			memDC.DrawBitmap(battleBmp, (int)(iter->mapImageXCoord * x_scale - half_battle_image_width), (int)(iter->mapImageYCoord * y_scale - half_battle_image_height), true);
-			m_displayedBattleList.push_back(*iter);
+			if (SVS::Math::InRange(iter->startDate, startYear, endYear) == true)
+			{
+				battleYear = static_cast<int>(std::floor(iter->startDate));
+
+				if (battleYear == currentYear)
+				{
+//					memDC.DrawBitmap(battleBmp, static_cast<int>(std::round(iter->mapImageXCoord * x_scale - half_battle_image_width)), static_cast<int>(std::round(iter->mapImageYCoord * y_scale - half_battle_image_height)), true);
+				}
+				else
+				{
+					memDC.DrawBitmap(l_transparentExplosionImage, static_cast<int>(std::round(iter->mapImageXCoord * x_scale - half_battle_image_width)), static_cast<int>(std::round(iter->mapImageYCoord * y_scale - half_battle_image_height)), true);
+				}
+
+				m_displayedBattleList.push_back(*iter);
+
+#ifdef DRAW_DEBUG_BOX_AROUND_BATTLE
+				// DEBUG - draw a box around the battle
+				{
+//					memDC.DrawRectangle(static_cast<int>(std::round((iter->mapImageXCoord - 10) * x_scale)), static_cast<int>(std::round((iter->mapImageYCoord - 10) * y_scale)), static_cast<int>(std::round(20.0f * x_scale)), static_cast<int>(std::round(20.0f * y_scale)));
+
+//int x = static_cast<int>(std::round((iter->mapImageXCoord - 10) * x_scale));
+//int y = static_cast<int>(std::round((iter->mapImageYCoord - 10) * y_scale));
+//int w = static_cast<int>(std::round(20.0f * x_scale));
+//int h = static_cast<int>(std::round(20.0f * y_scale));
+
+					p1.x = static_cast<int>(std::round((iter->mapImageXCoord - 10) * x_scale));
+					p1.y = static_cast<int>(std::round((iter->mapImageYCoord - 10) * y_scale));
+					p2.x = static_cast<int>(std::round((iter->mapImageXCoord + 10) * x_scale));
+					p2.y = static_cast<int>(std::round((iter->mapImageYCoord + 10) * y_scale));
+
+					// left
+					memDC.DrawLine(p1.x,	p1.y,	p1.x,	p2.y);	// from (x1, y1) to (x2, y2)
+					// top
+					memDC.DrawLine(p1.x, p2.y, p2.x, p2.y);	// from (x1, y1) to (x2, y2)
+					// right
+					memDC.DrawLine(p2.x,	p2.y+1, p2.x, p1.y);	// from (x1, y1) to (x2, y2)
+					// bottom
+					memDC.DrawLine(p2.x, p1.y, p1.x, p1.y);	// from (x1, y1) to (x2, y2)
+				}
+#endif
+			}
 		}
-		//PenguinMaps::GetPixelLocation(iter->latitude, iter->longitude, &pixel_data);
-		//iter->mapImageXCoord = pixel_data.x;
-		//iter->mapImageYCoord = pixel_data.y;
+
+		// Draw active battles on top
+		for (BattleListIter iter = m_displayedBattleList.begin(); iter != m_displayedBattleList.end(); iter++)
+		{
+			battleYear = static_cast<int>(std::floor(iter->startDate));
+
+			if (battleYear == currentYear)
+			{
+				memDC.DrawBitmap(battleBmp, static_cast<int>(std::round(iter->mapImageXCoord * x_scale - half_battle_image_width)), static_cast<int>(std::round(iter->mapImageYCoord * y_scale - half_battle_image_height)), true);
+			}
+		}
 	}
 #endif
 
 	// 4. Deselect the bitmap so it's free to use
 	memDC.SelectObject(wxNullBitmap);
 
-	m_bitmap->SetBitmap(bitmap);	// Calling this causes an app freeze. Tried mutex but it hasn't fixed the problem.
+	m_bitmap->SetBitmap(bitmap);
 }
 
 void MainForm::OnMainSplitterSplitterSashPosChanged(wxSplitterEvent& event)
@@ -1013,7 +1265,7 @@ void MainForm::OnTimelineDateScrollBarScroll(wxScrollEvent& event)
 //						m_bitmapMutex.unlock();
 #else
 //						m_bitmapMutex.lock();
-						m_bitmap->SetBitmap(iter->thumbnailBitmap);	// Calling this causes a app freeze. Tried mutex but it hasnt fixed the problem.
+						m_bitmap->SetBitmap(iter->thumbnailBitmap);
 //						m_bitmapMutex.unlock();
 
 						// Defer bitmap update to avoid re-entrancy
@@ -1041,6 +1293,7 @@ void MainForm::OnTimelineDateScrollBarScroll(wxScrollEvent& event)
 #endif
 
 		m_image_requires_update = true;
+		CheckForCurrentYearBattleIndexChange();
 	}
 
 	event.Skip();
@@ -1134,6 +1387,12 @@ void MainForm::OnGlobalCharHook(wxKeyEvent& event)
 		case 'S':
 			m_timelineCanvas->ZoomOut(step);
 			break;
+		case 'B':
+			GoToPreviousBattle();
+			break;
+		case 'N':
+			GoToNextBattle();
+			break;
 #ifdef GENERATE_LAT_LON_MAPPING_ARRAY
 		case 'J':
 			m_image_requires_update = true;
@@ -1214,28 +1473,6 @@ void MainForm::OnGlobalCharHook(wxKeyEvent& event)
 //	event.Skip();
 //}
 
-//void MainForm::OnDateLeftStaticTextLeftDown(wxMouseEvent& event)
-//{
-//	m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() - 1.0);
-//
-//	UpdateDateText();
-//	m_appData->updateDateScrollbar = true;
-//	m_image_requires_update = true;
-//
-//	event.Skip();
-//}
-//
-//void MainForm::OnDateRightStaticTextLeftDown(wxMouseEvent& event)
-//{
-//	m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() + 1.0);
-//
-//	UpdateDateText();
-//	m_appData->updateDateScrollbar = true;
-//	m_image_requires_update = true;
-//
-//	event.Skip();
-//}
-
 void MainForm::OnDateLeftButtonButtonClick(wxCommandEvent& event)
 {
 	m_timelineCanvas->SetDate(m_timelineCanvas->GetDate() - 1.0);
@@ -1243,6 +1480,7 @@ void MainForm::OnDateLeftButtonButtonClick(wxCommandEvent& event)
 	UpdateDateText();
 	m_appData->updateDateScrollbar = true;
 	m_image_requires_update = true;
+//	CheckForCurrentYearBattleIndexChange();
 
 	event.Skip();
 }
@@ -1254,6 +1492,21 @@ void MainForm::OnDateRightButtonButtonClick(wxCommandEvent& event)
 	UpdateDateText();
 	m_appData->updateDateScrollbar = true;
 	m_image_requires_update = true;
+//	CheckForCurrentYearBattleIndexChange();
+
+	event.Skip();
+}
+
+void MainForm::OnBattleLeftButtonButtonClick(wxCommandEvent& event)
+{
+	GoToPreviousBattle();
+
+	event.Skip();
+}
+
+void MainForm::OnBattleRightButtonButtonClick(wxCommandEvent& event)
+{
+	GoToNextBattle();
 
 	event.Skip();
 }
@@ -1301,17 +1554,20 @@ void MainForm::OnBitmapMotion(wxMouseEvent& event)
 	if (m_imageIndex != -1)
 	{
 		if (m_shrunkImg.IsOk() == false)
-		{
 			return;
-		}
+
+		if (m_showBattles == false)
+			return;
+
+		if (m_displayedBattleList.empty() == true)
+			return;
 
 		int mouseX = event.GetX();
 		int mouseY = event.GetY();
 //		int mouseY = h - event.GetY() - 1;
 
-		int shrunkW, shrunkH;
-		shrunkW = m_shrunkImg.GetWidth();
-		shrunkH = m_shrunkImg.GetHeight();
+		int shrunkW = m_shrunkImg.GetWidth();
+		int shrunkH = m_shrunkImg.GetHeight();
 
 		int bitmapW, bitmapH;
 		m_bitmap->GetSize(&bitmapW, &bitmapH);
@@ -1319,30 +1575,31 @@ void MainForm::OnBitmapMotion(wxMouseEvent& event)
 		//int bitmapPanelW, bitmapPanelH;
 		//m_bitmapPanel->GetSize(&bitmapPanelW, &bitmapPanelH);
 
-		int bitmapOffsetX = (bitmapW - shrunkW) / 2;
-		int bitmapOffsetY = (bitmapH - shrunkH) / 2;
+		float bitmapOffsetX = (bitmapW - shrunkW) / 2.0f;
+		float bitmapOffsetY = (bitmapH - shrunkH) / 2.0f;
 
-		int bitmapX = mouseX - bitmapOffsetX;
-		int bitmapY = mouseY - bitmapOffsetY;
+		float bitmapMouseX = mouseX - bitmapOffsetX;
+		float bitmapMouseY = mouseY - bitmapOffsetY;
 
-		double pixelX = (bitmapX / (double)shrunkW) * PenguinMaps::GetMapWidth();
-		double pixelY = (bitmapY / (double)shrunkH) * PenguinMaps::GetMapHeight();
+		// Get the mouse coordinates in the full size image
+		float pixelMouseX = (bitmapMouseX / (float)shrunkW) * PenguinMaps::GetMapWidth();
+		float pixelMouseY = (bitmapMouseY / (float)shrunkH) * PenguinMaps::GetMapHeight();
 
-		SVS::Vector2Dd pixelLocation = SVS::Vector2Dd(pixelX, pixelY);
+		SVS::Vector2Df pixelLocation = SVS::Vector2Df(pixelMouseX, pixelMouseY);
 
-		double shortestDistanceSquared	= std::numeric_limits<double>::max();
-		double distanceSquared				= 0.0;
+		float shortestDistanceSquared	= std::numeric_limits<float>::max();
+		float distanceSquared				= 0.0;
 		int i										= 0;
 
 		m_displayedBattleListIndex			= -1;
 
-		// Test if we are hovering over a battle
+		// Find the closest battle (to the mouse) that we are hovering over
 		for (BattleListIter iter = m_displayedBattleList.begin(); iter != m_displayedBattleList.end(); iter++)
 		{
-			if ((SVS::Math::Abs(pixelX - iter->mapImageXCoord) < 10.0) &&
-				 (SVS::Math::Abs(pixelY - iter->mapImageYCoord) < 10.0))
+			if ((SVS::Math::Abs(pixelMouseX - iter->mapImageXCoord) < 10.0f) &&
+				 (SVS::Math::Abs(pixelMouseY - iter->mapImageYCoord) < 10.0f))
 			{
-				distanceSquared = (SVS::Vector2Dd(iter->mapImageXCoord, iter->mapImageYCoord) - pixelLocation).LengthSq();
+				distanceSquared = (SVS::Vector2Df((float)iter->mapImageXCoord, (float)iter->mapImageYCoord) - pixelLocation).LengthSq();
 
 				if (distanceSquared < shortestDistanceSquared)
 				{
@@ -1381,6 +1638,7 @@ void MainForm::OnBitmapMotion(wxMouseEvent& event)
 		}
 		else
 		{
+			// Not over any battle so clear the tool tip
 			m_bitmap->SetToolTip(wxEmptyString);
 		}
 	}
@@ -1586,6 +1844,21 @@ void MainForm::OnShowLatLonMenuItemMenuSelection(wxCommandEvent& event)
 
 	event.Skip();
 }
+
+void MainForm::OnShowBattlesMenuItemMenuSelection(wxCommandEvent& event)
+{
+	m_showBattles = event.IsChecked();
+
+	m_image_requires_update = true;
+	m_oldImageId = -1;
+
+	m_battleLeftButton->Enable(m_showBattles);
+	m_battleStaticText->Enable(m_showBattles);
+	m_battleRightButton->Enable(m_showBattles);
+
+	event.Skip();
+}
+
 
 void MainForm::OnSlideshowTimer(wxTimerEvent& event)
 {
@@ -1941,8 +2214,7 @@ void MainForm::OnWebViewNavigated(wxWebViewEvent& event)
 }
 
 
-
-
+#ifdef DO_IMAGE_ALIGNMENT
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d.hpp>
@@ -2025,3 +2297,5 @@ void MainForm::DoImageAlignment()
     imwrite("D:/Work/Projects/HistoryApp/Data/Images - Aligned/output/aligned_map_output.png", registeredMap);
     cout << "Map registration complete. Saved output as aligned_map_output.png" << endl;
 }
+
+#endif

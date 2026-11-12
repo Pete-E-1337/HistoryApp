@@ -43,10 +43,10 @@ public:
 	virtual void OnBitmapLeftDClick(wxMouseEvent& event) override;
 	virtual void OnBitmapMotion(wxMouseEvent& event) override;
 	virtual void OnMainSplitterSplitterSashPosChanged(wxSplitterEvent& event) override;
-	//virtual void OnDateLeftStaticTextLeftDown(wxMouseEvent& event) override;
-	//virtual void OnDateRightStaticTextLeftDown(wxMouseEvent& event) override;
 	virtual void OnDateLeftButtonButtonClick(wxCommandEvent& event) override;
 	virtual void OnDateRightButtonButtonClick(wxCommandEvent& event) override;
+	virtual void OnBattleLeftButtonButtonClick(wxCommandEvent& event) override;
+	virtual void OnBattleRightButtonButtonClick(wxCommandEvent& event) override;
 	virtual void OnFindTextCtrlTextEnter(wxCommandEvent& event) override;
 	virtual void OnFindButtonButtonClick(wxCommandEvent& event) override;
 	virtual void OnGoogleSearchButtonButtonClick(wxCommandEvent& event) override;
@@ -58,6 +58,7 @@ public:
 	virtual void OnNextButtonButtonClick(wxCommandEvent& event) override;
 	virtual void OnSlideshowDisplayTimeSpinCtrlSpinCtrl(wxSpinEvent& event) override;
 	virtual void OnShowLatLonMenuItemMenuSelection(wxCommandEvent& event) override;
+	virtual void OnShowBattlesMenuItemMenuSelection(wxCommandEvent& event);
    void Initialise();
 
 	// Image Alignment
@@ -100,6 +101,10 @@ private:
 #endif
 	void DeferredBitmapUpdate(bool image_found);
 	void DrawImageAndBattles();
+	void CheckForCurrentYearBattleIndexChange();
+	void GoToNextBattle();
+	void GoToPreviousBattle();
+	bool DoesDateHaveAnAssociatedImage(double date, int& imageIndex);
 
 private:
 //	wxRichToolTip*					m_bitmapTooltip					= nullptr;	// useless because the text cannot be changed dynamically
@@ -115,6 +120,7 @@ private:
 	bool								m_image_requires_update			= true;
 //	double							m_old_date							= std::numeric_limits<double>::lowest();
 	int								m_oldImageId						= -1;
+	int								m_oldbattleId						= -1;
 #ifdef USE_THUMBNAILS
 //	int								m_oldThumbnailId					= -1;
 #endif
@@ -131,6 +137,7 @@ private:
 	BattleList						m_displayedBattleList;
 	int								m_displayedBattleListIndex		= -1;
 	bool								m_showLatLonGrid					= false;
+	bool								m_showBattles						= true;
 };
 
 #endif // MAINFORM_H

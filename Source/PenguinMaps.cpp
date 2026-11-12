@@ -78,7 +78,7 @@ int PenguinMaps::GetArrayColIndexForLon(double lon)
 	return index;
 }
 
-void PenguinMaps::GetPixelLocation(double lat, double lon, double date, MapPixelData* pixel_data)
+bool PenguinMaps::GetPixelLocation(double lat, double lon, double date, MapPixelData* pixel_data)
 {
 	pixel_data->x = XXX;
 	pixel_data->y = XXX;
@@ -87,10 +87,10 @@ void PenguinMaps::GetPixelLocation(double lat, double lon, double date, MapPixel
 	int col = GetArrayColIndexForLon(lon);
 
 	if ((row == -1) || (col == -1))
-		return;
+		return false;
 
 	if (((row - 1) < 0) || ((col + 1) >= l_array_cols)) // won't be able to get the previous row, or the next column
-		return;
+		return false;
 
 //	const MapPixelData (*map_pixel_data)[l_array_rows][l_array_cols] = &l_map_pixel_data;
 	const MapPixelData (*map_pixel_data)[l_array_rows][l_array_cols];
@@ -132,7 +132,7 @@ void PenguinMaps::GetPixelLocation(double lat, double lon, double date, MapPixel
 		 (p4.x <= XXX) ||
 		 (p4.y <= XXX))
 	{
-		return;	// no data in array (yet)
+		return false;	// no data in array (yet)
 	}
 
 	double x_scalar = (lon - l_map_col_lon_data[col]) / 10.0;	// 10.0f is the longitudinal step in our array
@@ -148,6 +148,8 @@ void PenguinMaps::GetPixelLocation(double lat, double lon, double date, MapPixel
 
 	SVS::Vector2Dd pixel_location = p1 + v1 + v3;
 
-	pixel_data->x = (int)(std::round(pixel_location.x));
-	pixel_data->y = (int)(std::round(pixel_location.y));
+	pixel_data->x = static_cast<int>(std::round(pixel_location.x));
+	pixel_data->y = static_cast<int>(std::round(pixel_location.y));
+
+	return true;
 }

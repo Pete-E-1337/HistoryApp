@@ -651,15 +651,16 @@ void TimelineGLCanvas::DrawTimelineEvent(const TimelineEventData& eventData, boo
 std::string TimelineGLCanvas::DateToString(double date)
 {
 	std::string str;
+	double flooredDate = std::floor(date);
 
-	if (date < 0.0)
+	if (flooredDate < 0.0)
 	{
-		date *= -1.0;
-		str = std::to_string((int64_t)date) + " BCE";	// BC
+		flooredDate *= -1.0;
+		str = std::to_string((int64_t)flooredDate) + " BCE";	// BC
 	}
 	else
 	{
-		str = std::to_string((int64_t)date) + " CE";		// AD
+		str = std::to_string((int64_t)flooredDate) + " CE";		// AD
 	}
 
 	return str;
